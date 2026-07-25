@@ -1,0 +1,17 @@
+streamlit
+yfinance==0.2.40
+pandas
+numpy
+plotly
+scikit-learn
+pmdarima
+prophet
+xgboost
+tensorflow-cpu
+statsmodels
+requests
+lxml
+html5lib
+statsmodels
+cmdstanpy
+pandas-datareader
