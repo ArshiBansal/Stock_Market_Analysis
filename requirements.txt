@@ -1,0 +1,38 @@
+# Core
+streamlit>=1.32.0
+pandas>=2.1.0
+numpy>=1.26.0
+yfinance>=0.2.36
+
+# Technical analysis / features
+ta>=0.11.0
+
+# Classical ML
+scikit-learn>=1.4.0
+xgboost>=2.0.0
+lightgbm>=4.3.0
+
+# Deep Learning
+tensorflow>=2.15.0
+# or use torch if you prefer: torch>=2.1.0
+
+# NLP / Sentiment
+vaderSentiment>=3.3.2
+transformers>=4.38.0
+torch>=2.1.0          # required by transformers / FinBERT
+# sentencepiece        # sometimes needed by tokenizers
+
+# Visualization
+plotly>=5.18.0
+matplotlib>=3.8.0
+seaborn>=0.13.0
+
+# Utilities
+python-dotenv>=1.0.0
+requests>=2.31.0
+tqdm>=4.66.0
+joblib>=1.3.0
+
+# Optional but useful
+prophet>=1.1.5       # optional time-series comparator
+newsapi-python       # if you decide to use NewsAPI
