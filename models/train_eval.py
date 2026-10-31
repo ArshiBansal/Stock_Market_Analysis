@@ -31,7 +31,7 @@ from .dl_models import (
 def directional_accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """
     Percentage of times the predicted direction matches the actual direction.
-    Zero actuals are ignored.
+    Assumes both are returns (or differences). Zero actuals are ignored.
     """
     y_true = np.asarray(y_true).ravel()
     y_pred = np.asarray(y_pred).ravel()
@@ -53,7 +53,11 @@ def evaluate_regression(
     y_pred = np.asarray(y_pred).ravel()
 
     mae = mean_absolute_error(y_true, y_pred)
-    rmse = float(np.sqrt(mean_squared_error(y_true, y_pred)))  # compatible with new sklearn
+
+    # Compatible with all recent scikit-learn versions
+    # (the 'squared' argument was removed)
+    rmse = float(np.sqrt(mean_squared_error(y_true, y_pred)))
+
     dir_acc = directional_accuracy(y_true, y_pred)
 
     return {
@@ -130,10 +134,12 @@ def _run_dl(
     seq_len: int = 30,
     epochs: int = 40,
 ) -> Dict[str, Any]:
+    # Scale features
     scaler = StandardScaler()
     X_train_s = scaler.fit_transform(X_train)
     X_test_s = scaler.transform(X_test)
 
+    # Create sequences
     Xtr_seq, ytr_seq = create_sequences(X_train_s, y_train.values, seq_len)
     Xte_seq, yte_seq = create_sequences(X_test_s, y_test.values, seq_len)
 
@@ -155,6 +161,7 @@ def _run_dl(
     else:
         raise ValueError(f"Unknown DL model: {name}")
 
+    # Small validation split from the end of training sequences
     val_split = int(len(Xtr_seq) * 0.85)
     history = train_dl_model(
         model,
@@ -188,6 +195,9 @@ def run_model_comparison(
     test_size: float = 0.2,
     seq_len: int = 30,
 ) -> pd.DataFrame:
+    """
+    Run a set of models on the same chronological split and return a summary table.
+    """
     if models is None:
         models = [
             "NaiveLastClose",
@@ -240,6 +250,9 @@ def walk_forward_validation(
     n_splits: int = 5,
     **model_kwargs,
 ) -> Dict[str, Any]:
+    """
+    Simple walk-forward (expanding window) validation using TimeSeriesSplit.
+    """
     tscv = TimeSeriesSplit(n_splits=n_splits)
     scores = []
 
@@ -252,6 +265,7 @@ def walk_forward_validation(
             model.fit(X_tr, y_tr)
             preds = model.predict(X_te)
         else:
+            # Fallback to baseline for simplicity
             model = NaiveLastReturn()
             model.fit(X_tr, y_tr)
             preds = model.predict(X_te)
@@ -265,4 +279,3 @@ def walk_forward_validation(
         "DirectionalAccuracy": round(np.mean([s["DirectionalAccuracy"] for s in scores]), 2),
     }
     return {"model": model_name, "n_splits": n_splits, "fold_scores": scores, "average": avg}
-    
