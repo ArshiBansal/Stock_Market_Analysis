@@ -2,21 +2,36 @@
 
 <img src="assets/architecture-banner.svg" alt="Zephyr architecture: Streamlit presentation, Python analysis, and Yahoo Finance services" width="100%">
 
-### Three layers. One traceable market-data journey.
+### A guided walk through the system behind the charts.
 
-*Follow a request from the dashboard, through feature and model experiments, to its external data source.*
+*Start at the dashboard. Follow a market-data request through the analysis modules, and see where models and external services join the story.*
 
 </div>
 
-> **Architecture at a glance:** presentation → analysis → external services. Market observations and predictions remain in application memory; the project does **not** configure a database or model-serving backend.
+> **Before the tour:** this is a map of the current code, not a proposed redesign. Market observations and predictions remain in application memory; the project does **not** configure a database or model-serving backend.
 
 <div align="center">
 
-<span style="color:#77B8DF">■ PRESENTATION</span>　→　<span style="color:#B6A1E5">■ ANALYSIS</span>　→　<span style="color:#F19A9F">■ EXTERNAL SERVICES</span>
+**THE SCREENS**　<span style="color:#77B8DF">■ PRESENTATION</span>　→　**THE WORKROOM**　<span style="color:#B6A1E5">■ ANALYSIS</span>　→　**THE OUTSIDE WORLD**　<span style="color:#F19A9F">■ SERVICES</span>
 
 </div>
 
-<h2 align="center">01 · Application architecture</h2>
+<details>
+<summary><strong>Choose a path through the map</strong></summary>
+
+- [01 · The big picture](#application-architecture)
+- [Technology stack](#technology-stack-summary)
+- [Data storage and external services](#data-storage-amp-external-services)
+- [Architectural choices](#key-architectural-decisions)
+- [02 · A closer look at the components](#component-relationships)
+- [Component inventory](#component-inventory)
+- [Related guides](#related-guides)
+
+</details>
+
+<h2 align="center" id="application-architecture">01 · The big picture</h2>
+
+Think of Zephyr as a small research room. A browser opens the screens; those screens request data and call the Python analysis modules; results return to the dashboard as tables, charts, and metrics. The top-level diagram follows that journey.
 
 <!-- mermaid-checked: no \n, no em-dash/en-dash, no {} in labels, subgraphs are id["label"], arrows are -->|"label"|, all subgraphs closed by end, ids unique -->
 ```mermaid
@@ -69,7 +84,7 @@ flowchart TD
     Sentiment -.->|"loads pretrained weights when needed"| ModelHub
 ```
 
-<h3 align="center">Technology stack summary</h3>
+<h3 align="center" id="technology-stack-summary">The tools in the room</h3>
 
 | Layer | Technology | Version | Purpose |
 |---|---|---|---|
@@ -89,21 +104,21 @@ flowchart TD
 
 Versions shown are minimum constraints from `requirements.txt`, not a lockfile or guarantee of compatibility on every operating system.
 
-<h3 align="center">Data storage &amp; external services</h3>
+<h3 align="center" id="data-storage-amp-external-services">Where the data goes</h3>
 
 Yahoo Finance is accessed at runtime through `yfinance` for quotes, historical OHLCV observations, and supporting news retrieval. FinBERT can obtain pretrained model files from the Hugging Face model hub when sentiment analysis is invoked. **There is no database, message broker, or durable market-data store:** fetched data and model results are handled in application memory. The configured `artifacts` directory is created by the application, but the current dashboard does not use it as a persistent model registry.
 
-<h3 align="center">Key architectural decisions</h3>
+<h3 align="center" id="key-architectural-decisions">Why the system is arranged this way</h3>
 
 - **Modular Streamlit presentation:** `app.py` composes the shared sidebar and six focused tab renderers in `ui/`.
 - **Separated analysis responsibilities:** fetching, cleaning, feature engineering, model factories, and evaluation live in distinct Python packages.
 - **Time-aware evaluation:** supervised targets are shifted to the next observation and comparisons use chronological splits rather than shuffled samples.
 
-<h2 align="center">02 · Component relationships</h2>
+<h2 align="center" id="component-relationships">02 · A closer look at the components</h2>
 
 <div align="center">
 
-*The second map zooms in: which dashboard view calls which reusable module?*
+*Now zoom in from the rooms to the connections: which dashboard view calls which reusable module?*
 
 </div>
 
@@ -180,7 +195,7 @@ flowchart LR
     cDL -.->|"uses random seed"| cConfig
 ```
 
-<h3 align="center">Component inventory</h3>
+<h3 align="center" id="component-inventory">The component field guide</h3>
 
 | Component | Layer | Type | Responsibility |
 |---|---|---|---|
@@ -203,3 +218,15 @@ flowchart LR
 | `nlp.news_fetch` | Supporting | News helper | Retrieves and deduplicates ticker headlines; not wired into the current dashboard |
 | `nlp.sentiment` | Supporting | Sentiment helper | Scores headlines with VADER or optional FinBERT; not wired into the current dashboard |
 | `config.py` | Supporting | Configuration module | Defines project metadata, ticker universe, refresh choices, feature windows, and model options |
+
+<div align="center">
+
+> “Good architecture makes the route from observation to result easier to follow.”
+
+<sub>For how the experiments work, read the [methodology](METHODOLOGY.md). For what those results cannot promise, see [limitations](LIMITATIONS.md).</sub>
+
+<br>
+
+[Back to the project README](README.md)
+
+</div>
