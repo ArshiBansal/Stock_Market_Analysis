@@ -75,21 +75,23 @@ def handle_missing_values(
     if method == "drop":
         return df.dropna(subset=["Open", "High", "Low", "Close"])
 
-    # Forward / backward fill with limit
-    if method in ("ffill", "bfill"):
+    # New pandas-compatible way (method= is no longer supported)
+    if method == "ffill":
         df[["Open", "High", "Low", "Close"]] = (
-            df[["Open", "High", "Low", "Close"]]
-            .fillna(method=method, limit=max_ffill)
+            df[["Open", "High", "Low", "Close"]].ffill(limit=max_ffill)
         )
-        # Volume – fill with 0 after limited ffill
-        df["Volume"] = df["Volume"].fillna(method=method, limit=max_ffill)
-        df["Volume"] = df["Volume"].fillna(0)
+        df["Volume"] = df["Volume"].ffill(limit=max_ffill).fillna(0)
+
+    elif method == "bfill":
+        df[["Open", "High", "Low", "Close"]] = (
+            df[["Open", "High", "Low", "Close"]].bfill(limit=max_ffill)
+        )
+        df["Volume"] = df["Volume"].bfill(limit=max_ffill).fillna(0)
 
     # Final safety drop of any remaining NaNs in price columns
     df = df.dropna(subset=["Open", "High", "Low", "Close"])
 
     return df
-
 
 def quality_report(df: pd.DataFrame, ticker: str = "") -> Dict:
     """
