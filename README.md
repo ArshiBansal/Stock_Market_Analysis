@@ -4,13 +4,13 @@
 
 <br>
 
-### A market lab for curious minds
+### The market opens. The questions begin.
 
-**Explore market history. Compare forecasting models. See the limits behind every prediction.**
+**One ticker. A trail of evidence. A forecast that still has to earn your trust.**
 
-*A practical, interactive stock-analysis project built for learning—not trading advice.*
+*Step into a small research room where every chart starts with data, every model faces a test, and no prediction gets the final word.*
 
-[Explore the app](#-launch-zephyr) · [See the workflow](#-from-market-data-to-model-score) · [Read the fine print](#-data-models-and-limitations)
+[Explore the app](#launch-zephyr) · [See the workflow](#market-data-to-model-score) · [Read the fine print](#data-models-and-limitations)
 
 <br>
 
@@ -20,31 +20,36 @@
 
 <br>
 
-> [!IMPORTANT]
-> **This is an educational research dashboard—not an investment product.** Forecasts are experimental, can be wrong, and should not be used as the basis for financial decisions.
+<div align="center">
+
+> **⚠️ Educational research only · Not financial advice**
+>
+> Forecasts are experimental, can be wrong, and should not be used as the basis for financial decisions.
+
+</div>
 
 <details>
 <summary><strong>Quick navigation</strong>　(⌘ / Ctrl + click a section)</summary>
 
-- [The idea](#-the-idea)
-- [What you can explore](#-what-you-can-explore)
-- [How the analysis flows](#-from-market-data-to-model-score)
-- [Launch Zephyr](#-launch-zephyr)
-- [Project map](#-project-map)
-- [Tests](#-tests)
-- [Data, models, and limitations](#-data-models-and-limitations)
-- [News and sentiment modules](#-news-and-sentiment-modules)
-- [License](#-license)
+- [Step into the market lab](#the-idea)
+- [Six stops along the investigation](#what-you-can-explore)
+- [Follow the evidence](#market-data-to-model-score)
+- [Open the lab](#launch-zephyr)
+- [Find your way around the project](#project-map)
+- [Check the experiments](#tests)
+- [The researcher's field notes](#data-models-and-limitations)
+- [The side room: news and sentiment](#news-and-sentiment-modules)
+- [License](#license)
 
 </details>
 
-## ✦ The idea
+<h2 align="center" id="the-idea">✦ Step into the market lab</h2>
 
-**Zephyr** is a Streamlit dashboard for exploring historical stock data and short-horizon forecasting experiments. Choose a ticker, inspect its OHLCV history, engineer technical features, train baseline or machine-learning models, and compare their results on a *chronological* holdout.
+Imagine opening the lab before making up your mind about a stock. **Zephyr** is a Streamlit dashboard that lets you follow the evidence: choose a company, look at its available market history, turn observations into technical features, and see how forecasting experiments perform on data they did not train on.
 
-The project favors **inspection over illusion**: it displays model scores alongside the observed-versus-predicted series and keeps the financial disclaimer in view. No model can promise what a market will do next. (｡•̀ᴗ-)✧
+This is not a story where the model knows the ending. It is a place to ask better questions, compare a simple baseline with more complex models, and notice where predictions miss. Scores and test-set charts belong together; **a forecast is a clue, not a conclusion.** (｡•̀ᴗ-)✧
 
-### Built around five questions
+<h3 align="center">Every research session starts with a question</h3>
 
 | Question | Where to look |
 |---|---|
@@ -54,7 +59,9 @@ The project favors **inspection over illusion**: it displays model scores alongs
 | How do neural networks and model scores compare? | **Neural Networks** · **Performance Metrics** |
 | What does the selected model estimate for the next period? | **AI Forecast** |
 
-## ◈ What you can explore
+<h2 align="center" id="what-you-can-explore">◈ Six stops along the investigation</h2>
+
+The sidebar is your field notebook: choose a region, pick a ticker, set a date range, and select a model. From there, each tab reveals another part of the investigation.
 
 | Dashboard area | What it shows | Models / methods |
 |---|---|---|
@@ -72,9 +79,22 @@ The project favors **inspection over illusion**: it displays model scores alongs
 <img alt="Evaluation" src="https://img.shields.io/badge/04%20%E2%80%94%20Evaluation-315B7D?style=flat-square">
 </p>
 
+### 🌐 The map on the wall
+
+The map is selective rather than complete. Browse the configured companies by region, or choose from the combined ticker list.
+
+| Region | Example symbols |
+|---|---|
+| United States | `AAPL` · `MSFT` · `NVDA` · `JPM` |
+| United Kingdom | `AZN.L` · `SHEL.L` · `HSBA.L` |
+| Europe | `ASML.AS` · `SAP.DE` · `NESN.SW` |
+| Australia | `CBA.AX` · `BHP.AX` · `CSL.AX` |
+
 > **A note on the horizon control:** the sidebar offers 1-, 3-, and 5-day selections, but the current AI Forecast implementation predicts a **next-period return**; it does not recursively generate a multi-day path. Treat the displayed horizon as UI context, <mark style="background-color:#473B67;color:#F5F7FC;">not a validated multi-day forecast</mark>.
 
-## ⤷ From market data to model score
+<h2 align="center" id="market-data-to-model-score">⤷ Follow the evidence</h2>
+
+The journey begins with market observations, not a prediction. Clean the record, build features from what was available at the time, then hold back later observations for the test. Only after that does the model get its turn.
 
 ```mermaid
 flowchart LR
@@ -101,17 +121,39 @@ flowchart LR
     class J,K score;
 ```
 
-### The model shelf
+<h3 align="center">Three kinds of voices in the room</h3>
 
 | Family | Available choices | Purpose |
 |---|---|---|
-| **Baselines** | `NaiveLastClose`, `NaiveLastReturn` | Establish simple reference predictions |
-| **Classical ML** | `RandomForest`, `ExtraTrees`, `HistGradientBoosting`, `XGBoost`, `LightGBM` | Compare tree-based regressors on engineered features |
-| **Neural networks** | `LSTM`, `GRU` | Experiment with sequence-based return prediction |
+| **The baseline** | `NaiveLastClose`, `NaiveLastReturn` | The quiet starting point: can a simple reference already do well? |
+| **The tree models** | `RandomForest`, `ExtraTrees`, `HistGradientBoosting`, `XGBoost`, `LightGBM` | Several ways of learning patterns from engineered features |
+| **The sequence models** | `LSTM`, `GRU` | Neural-network experiments that read ordered sequences |
 
-**Reported metrics:** mean absolute error (**MAE**), root mean squared error (**RMSE**), and **directional accuracy** (the share of non-zero actual returns whose sign is predicted correctly).
+The scorecard reports mean absolute error (**MAE**), root mean squared error (**RMSE**), and **directional accuracy** (how often the predicted direction matches a non-zero actual return). One score is never the whole story.
 
-## ◉ Launch Zephyr
+### 🧭 What the model gets to see
+
+Before the experiment, the feature pipeline turns historical OHLCV observations into numeric clues. Raw prices and future target columns are excluded from the model inputs.
+
+| Feature family | Examples |
+|---|---|
+| Returns & lags | Daily and log returns; selected prior returns |
+| Trend | Simple and exponential moving averages; close-to-average ratios |
+| Risk & momentum | Rolling return volatility; annualized volatility; momentum |
+| Candle shape | Daily range, candle body, upper and lower shadows |
+| Trading activity | Volume change, rolling volume average, volume ratio |
+
+<h2 align="center" id="launch-zephyr">◉ Open the lab on your machine</h2>
+
+<h3 align="center">Four steps from a blank terminal to your first ticker</h3>
+
+<div align="center">
+
+**① Prepare a workspace**　→　**② Bring in the tools**　→　**③ Open the dashboard**　→　**④ Choose a ticker**
+
+*Begin at Overview for the latest available quote; visit Raw Data next to inspect what the charts are built from.*
+
+</div>
 
 ### 1 · Prepare Python
 
@@ -156,7 +198,7 @@ python -m pytest -q
 
 Tests that fetch live quotes or ticker history depend on network access and Yahoo Finance responses.
 
-## ⌘ Project map
+<h2 align="center" id="project-map">⌘ Find your way around the project</h2>
 
 ```text
 Stock_Market_Analysis/
@@ -182,7 +224,7 @@ Stock_Market_Analysis/
     └── experiments.ipynb   # Experimental analysis notebook
 ```
 
-## ✓ Tests
+<h2 align="center" id="tests">✓ Check the experiments</h2>
 
 The tests cover data cleaning and quality summaries, feature generation and target shifting, and evaluation metrics.
 
@@ -192,7 +234,9 @@ python -m pytest -q
 
 `tests/test_data.py` also contains live Yahoo Finance checks; those tests may fail when the network, upstream service, or ticker response is unavailable.
 
-## ⚑ Data, models, and limitations
+<h2 align="center" id="data-models-and-limitations">⚑ The researcher's field notes</h2>
+
+Every investigation has boundaries. Keep these notes nearby as you read the charts and model scores:
 
 - **Data source:** market history and quotes are fetched through `yfinance` from Yahoo Finance. Availability, coverage, timestamps, and delays are outside this project's control.
 - **Ticker coverage:** the configured universe includes selected listings in the United States, United Kingdom, Europe, and Australia. It is not a complete exchange listing.
@@ -204,15 +248,19 @@ python -m pytest -q
 - **News sentiment:** sentiment helpers exist in `nlp/`, but the News & Sentiment tab and its sidebar controls are currently removed from the dashboard.
 - **No investment guidance:** forecasts may be inaccurate, stale, or misleading. Do your own research and consult a qualified professional where appropriate.
 
+<div align="center">
+
 > “The point is not to predict every move. It is to make the experiment—and its uncertainty—visible.”
 >
 > <sub>Zephyr project note · Please treat model output as a hypothesis, not a signal.</sub>
 
-## ◌ News and sentiment modules
+</div>
+
+<h2 align="center" id="news-and-sentiment-modules">◌ A side room: news and sentiment</h2>
 
 The repository includes helpers for retrieving ticker news from Yahoo Finance and analyzing headlines with **VADER** or **FinBERT**. These modules are supporting code, **not an active dashboard tab**. FinBERT may download its pretrained model on first use; availability depends on network access and the installed `transformers` / PyTorch environment.
 
-## ▣ License
+<h2 align="center" id="license">▣ License</h2>
 
 Distributed under the [MIT License](LICENSE).
 
@@ -220,8 +268,8 @@ Distributed under the [MIT License](LICENSE).
 
 <br>
 
-**Made for thoughtful experiments.** &nbsp; `｡･:*:･ﾟ★,｡･:*:･ﾟ☆`
+**The session ends; the questions stay open.** &nbsp; `｡･:*:･ﾟ★,｡･:*:･ﾟ☆`
 
-<sub>Less certainty. Better questions. More transparent charts.</sub>
+<sub>Made for thoughtful experiments, careful comparisons, and better questions—not certainty.</sub>
 
 </div>
