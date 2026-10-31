@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="300" viewBox="0 0 1440 300" role="img" aria-labelledby="title description">
+  <title id="title">Zephyr forecasting limitations</title>
+  <desc id="description">A midnight-blue banner with an illustrative forecast line passing through a dashed uncertainty boundary.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111B31"/>
+      <stop offset=".58" stop-color="#192D4A"/>
+      <stop offset="1" stop-color="#332B4D"/>
+    </linearGradient>
+    <linearGradient id="forecast" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#77B8DF"/>
+      <stop offset=".55" stop-color="#B6A1E5"/>
+      <stop offset="1" stop-color="#F19A9F"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#C9D8F0" stroke-opacity=".06"/>
+    </pattern>
+  </defs>
+  <rect width="1440" height="300" rx="26" fill="url(#background)"/>
+  <rect width="1440" height="300" rx="26" fill="url(#grid)"/>
+  <circle cx="1300" cy="38" r="118" fill="#7766A4" opacity=".12"/>
+  <g font-family="Segoe UI, Inter, Arial, sans-serif">
+    <text x="76" y="80" fill="#B9C9E1" font-size="15" font-weight="700" letter-spacing="4">ZEPHYR · RESEARCHER'S FIELD NOTES</text>
+    <text x="72" y="157" fill="#F5F7FC" font-size="54" font-weight="750">Know the boundaries</text>
+    <text x="76" y="197" fill="#D1D8E8" font-size="19">What the data, models, and forecast can - and cannot - tell you</text>
+    <rect x="76" y="225" width="117" height="30" rx="15" fill="#173B5E" stroke="#77B8DF"/>
+    <text x="134" y="245" text-anchor="middle" fill="#E5F4FC" font-size="12" font-weight="700">OBSERVATIONS</text>
+    <rect x="205" y="225" width="104" height="30" rx="15" fill="#403B70" stroke="#B6A1E5"/>
+    <text x="257" y="245" text-anchor="middle" fill="#F0EAFE" font-size="12" font-weight="700">ASSUMPTIONS</text>
+    <rect x="321" y="225" width="101" height="30" rx="15" fill="#633E5B" stroke="#F19A9F"/>
+    <text x="371" y="245" text-anchor="middle" fill="#FFF0F0" font-size="12" font-weight="700">UNCERTAINTY</text>
+  </g>
+  <g transform="translate(790 43)">
+    <rect x="0" y="0" width="570" height="214" rx="18" fill="#101A2D" fill-opacity=".52" stroke="#C5D4EA" stroke-opacity=".16"/>
+    <g stroke="#CFD9EA" stroke-opacity=".12">
+      <path d="M28 52H542M28 102H542M28 152H542"/>
+      <path d="M100 24V187M220 24V187M340 24V187M460 24V187"/>
+    </g>
+    <path d="M32 130 C90 105 112 149 170 112 S264 124 320 79" fill="none" stroke="#77B8DF" stroke-width="3" stroke-linecap="round"/>
+    <path d="M320 79 C365 54 408 104 448 68 S506 93 538 49" fill="none" stroke="url(#forecast)" stroke-width="3" stroke-linecap="round" stroke-dasharray="8 8"/>
+    <path d="M320 46 C372 19 414 67 448 37 S505 57 538 26 L538 105 C502 127 480 78 448 99 S380 84 320 112Z" fill="#B6A1E5" fill-opacity=".13" stroke="#B6A1E5" stroke-opacity=".38" stroke-dasharray="5 6"/>
+    <circle cx="320" cy="79" r="6" fill="#F19A9F"/>
+    <path d="M343 162H535" stroke="#F19A9F" stroke-opacity=".72" stroke-width="2" stroke-dasharray="4 6"/>
+    <text x="34" y="185" fill="#B9C9E1" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12">observed history</text>
+    <text x="388" y="185" fill="#D1D8E8" font-family="Segoe UI, Inter, Arial, sans-serif" font-size="12">uncertainty widens</text>
+  </g>
+</svg>
