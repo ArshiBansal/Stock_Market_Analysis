@@ -37,6 +37,7 @@
 - [Open the lab](#launch-zephyr)
 - [Find your way around the project](#project-map)
 - [Go beyond the dashboard](#beyond-the-dashboard)
+- [Changelog](CHANGELOG.md)
 - [Forecast limitations](LIMITATIONS.md)
 - [Check the experiments](#tests)
 - [The researcher's field notes](#data-models-and-limitations)
@@ -210,6 +211,7 @@ Stock_Market_Analysis/
 ├── ARCHITECTURE.md         # Application architecture and component relationships
 ├── METHODOLOGY.md          # Data preparation, evaluation, and forecast methodology
 ├── LIMITATIONS.md          # Data, baseline, evaluation, and forecast caveats
+├── CHANGELOG.md            # Comparison with the earlier app and notebook
 ├── assets/
 │   ├── zephyr-banner.svg   # Project banner
 │   ├── architecture-banner.svg
@@ -235,7 +237,7 @@ Stock_Market_Analysis/
 
 <div align="center">
 
-*Curious about what happens behind the charts? Continue the story from two different angles.*
+*Curious about what happens behind the charts? Choose one of four guides and follow the thread that interests you.*
 
 <table>
 <tr>
@@ -249,10 +251,17 @@ Stock_Market_Analysis/
 <p>Follow how market observations become features, how holdouts are formed, and how to interpret the resulting scores.</p>
 <a href="METHODOLOGY.md"><strong>Follow the research trail →</strong></a>
 </td>
+</tr>
+<tr>
 <td align="center" width="33%">
 <h3>⚑ Limitations</h3>
 <p>See where upstream data, baseline behavior, evaluation design, and the forecast interface set boundaries.</p>
 <a href="LIMITATIONS.md"><strong>Read the field notes →</strong></a>
+</td>
+<td align="center" width="33%">
+<h3>↺ Changelog</h3>
+<p>Compare the current modular app with the earlier Streamlit dashboard and research notebook.</p>
+<a href="CHANGELOG.md"><strong>See what changed →</strong></a>
 </td>
 </tr>
 </table>
