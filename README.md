@@ -35,6 +35,7 @@
 - [Six stops along the investigation](#what-you-can-explore)
 - [Follow the evidence](#market-data-to-model-score)
 - [Open the lab](#launch-zephyr)
+- [Architecture guide](ARCHITECTURE.md)
 - [Find your way around the project](#project-map)
 - [Check the experiments](#tests)
 - [The researcher's field notes](#data-models-and-limitations)
@@ -205,6 +206,7 @@ Stock_Market_Analysis/
 ├── app.py                  # Streamlit entry point and six dashboard tabs
 ├── config.py               # Project settings, ticker universe, model choices
 ├── requirements.txt        # Python dependencies
+├── ARCHITECTURE.md         # Application architecture and component relationships
 ├── assets/
 │   └── zephyr-banner.svg   # Project banner
 ├── data/
