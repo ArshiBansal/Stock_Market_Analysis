@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="300" viewBox="0 0 1440 300" role="img" aria-labelledby="title description">
+  <title id="title">Zephyr application architecture</title>
+  <desc id="description">A midnight-blue architecture banner with connected presentation, analysis, and service nodes.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111B31"/>
+      <stop offset=".58" stop-color="#192D4A"/>
+      <stop offset="1" stop-color="#332B4D"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#77B8DF"/>
+      <stop offset=".55" stop-color="#B6A1E5"/>
+      <stop offset="1" stop-color="#F19A9F"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#C9D8F0" stroke-opacity=".06"/>
+    </pattern>
+  </defs>
+  <rect width="1440" height="300" rx="26" fill="url(#background)"/>
+  <rect width="1440" height="300" rx="26" fill="url(#grid)"/>
+  <circle cx="1330" cy="30" r="120" fill="#7766A4" opacity=".13"/>
+  <g font-family="Segoe UI, Inter, Arial, sans-serif">
+    <text x="76" y="80" fill="#B9C9E1" font-size="15" font-weight="700" letter-spacing="4">ZEPHYR · SYSTEM MAP</text>
+    <text x="72" y="157" fill="#F5F7FC" font-size="54" font-weight="750">Under the hood</text>
+    <text x="76" y="197" fill="#D1D8E8" font-size="19">A guided tour from dashboard to data, models, and market services</text>
+    <rect x="76" y="225" width="94" height="30" rx="15" fill="#173B5E" stroke="#77B8DF"/>
+    <text x="123" y="245" text-anchor="middle" fill="#E5F4FC" font-size="12" font-weight="700">PRESENT</text>
+    <rect x="181" y="225" width="92" height="30" rx="15" fill="#403B70" stroke="#B6A1E5"/>
+    <text x="227" y="245" text-anchor="middle" fill="#F0EAFE" font-size="12" font-weight="700">ANALYZE</text>
+    <rect x="284" y="225" width="88" height="30" rx="15" fill="#633E5B" stroke="#F19A9F"/>
+    <text x="328" y="245" text-anchor="middle" fill="#FFF0F0" font-size="12" font-weight="700">CONNECT</text>
+  </g>
+  <g transform="translate(735 48)" font-family="Segoe UI, Inter, Arial, sans-serif">
+    <path d="M155 95H214M361 95H420" stroke="url(#line)" stroke-width="4" stroke-linecap="round"/>
+    <path d="M205 86L216 95L205 104M411 86L422 95L411 104" fill="none" stroke="#D7C8F1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="0" y="45" width="155" height="100" rx="17" fill="#173B5E" stroke="#77B8DF" stroke-width="2"/>
+    <text x="77" y="83" text-anchor="middle" fill="#B9DCF0" font-size="12" font-weight="700" letter-spacing="2">PRESENT</text>
+    <text x="77" y="111" text-anchor="middle" fill="#F5F7FC" font-size="20" font-weight="700">Streamlit</text>
+    <text x="77" y="131" text-anchor="middle" fill="#D1D8E8" font-size="12">six dashboard tabs</text>
+    <rect x="214" y="45" width="147" height="100" rx="17" fill="#403B70" stroke="#B6A1E5" stroke-width="2"/>
+    <text x="287" y="83" text-anchor="middle" fill="#D4C7F2" font-size="12" font-weight="700" letter-spacing="2">ANALYZE</text>
+    <text x="287" y="111" text-anchor="middle" fill="#F5F7FC" font-size="20" font-weight="700">Python</text>
+    <text x="287" y="131" text-anchor="middle" fill="#D1D8E8" font-size="12">features and models</text>
+    <rect x="420" y="45" width="155" height="100" rx="17" fill="#633E5B" stroke="#F19A9F" stroke-width="2"/>
+    <text x="497" y="83" text-anchor="middle" fill="#F4C7CC" font-size="12" font-weight="700" letter-spacing="2">CONNECT</text>
+    <text x="497" y="111" text-anchor="middle" fill="#F5F7FC" font-size="20" font-weight="700">Yahoo Finance</text>
+    <text x="497" y="131" text-anchor="middle" fill="#D1D8E8" font-size="12">live market data</text>
+    <text x="287" y="194" text-anchor="middle" fill="#B9C9E1" font-size="13">inspect  →  prepare  →  compare</text>
+  </g>
+</svg>
