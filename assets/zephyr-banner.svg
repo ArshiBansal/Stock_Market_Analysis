@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="360" viewBox="0 0 1440 360" role="img" aria-labelledby="title description">
+  <title id="title">Zephyr — Market data, models, and context</title>
+  <desc id="description">A midnight-blue banner with a stylized market chart in blue, violet, and coral.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111B31"/>
+      <stop offset="0.58" stop-color="#192D4A"/>
+      <stop offset="1" stop-color="#332B4D"/>
+    </linearGradient>
+    <linearGradient id="chart" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#77B8DF"/>
+      <stop offset="0.54" stop-color="#B6A1E5"/>
+      <stop offset="1" stop-color="#F19A9F"/>
+    </linearGradient>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#C9D8F0" stroke-opacity=".075" stroke-width="1"/>
+    </pattern>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="7" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <rect width="1440" height="360" rx="28" fill="url(#background)"/>
+  <rect width="1440" height="360" rx="28" fill="url(#grid)"/>
+  <circle cx="1285" cy="68" r="118" fill="#7766A4" opacity=".12"/>
+  <circle cx="1150" cy="342" r="150" fill="#5381A8" opacity=".12"/>
+
+  <g font-family="Segoe UI, Inter, Arial, sans-serif">
+    <text x="92" y="103" fill="#B9C9E1" font-size="16" font-weight="700" letter-spacing="5">MARKET DATA · MODELS · CONTEXT</text>
+    <text x="88" y="205" fill="#F5F7FC" font-size="78" font-weight="750" letter-spacing="-2">Zephyr</text>
+    <text x="94" y="250" fill="#D1D8E8" font-size="21">An interactive stock forecasting &amp; analysis lab</text>
+    <rect x="94" y="282" width="117" height="3" rx="2" fill="#77B8DF"/>
+    <rect x="217" y="282" width="76" height="3" rx="2" fill="#B6A1E5"/>
+    <rect x="299" y="282" width="50" height="3" rx="2" fill="#F19A9F"/>
+  </g>
+
+  <g transform="translate(816 56)">
+    <rect x="0" y="0" width="540" height="250" rx="20" fill="#101A2D" fill-opacity=".52" stroke="#C5D4EA" stroke-opacity=".16"/>
+    <g stroke="#CFD9EA" stroke-opacity=".12" stroke-width="1">
+      <path d="M28 52H512M28 100H512M28 148H512M28 196H512"/>
+      <path d="M76 25V222M172 25V222M268 25V222M364 25V222M460 25V222"/>
+    </g>
+    <path d="M30 184 C70 166 75 182 111 149 S169 166 201 127 S254 144 290 105 S340 132 377 83 S430 103 467 61 S493 72 512 41"
+      fill="none" stroke="url(#chart)" stroke-width="5" stroke-linecap="round" filter="url(#glow)"/>
+    <path d="M30 184 C70 166 75 182 111 149 S169 166 201 127 S254 144 290 105 S340 132 377 83 S430 103 467 61 S493 72 512 41"
+      fill="none" stroke="url(#chart)" stroke-width="3" stroke-linecap="round"/>
+    <circle cx="512" cy="41" r="6" fill="#F19A9F"/>
+    <circle cx="512" cy="41" r="12" fill="none" stroke="#F19A9F" stroke-opacity=".35" stroke-width="2"/>
+    <g fill="#86B8D7" opacity=".82">
+      <rect x="48" y="205" width="13" height="22" rx="3"/>
+      <rect x="82" y="193" width="13" height="34" rx="3"/>
+      <rect x="116" y="201" width="13" height="26" rx="3"/>
+      <rect x="150" y="177" width="13" height="50" rx="3"/>
+      <rect x="184" y="188" width="13" height="39" rx="3"/>
+      <rect x="218" y="165" width="13" height="62" rx="3"/>
+      <rect x="252" y="180" width="13" height="47" rx="3"/>
+      <rect x="286" y="154" width="13" height="73" rx="3"/>
+      <rect x="320" y="170" width="13" height="57" rx="3"/>
+      <rect x="354" y="142" width="13" height="85" rx="3"/>
+      <rect x="388" y="157" width="13" height="70" rx="3"/>
+      <rect x="422" y="125" width="13" height="102" rx="3"/>
+      <rect x="456" y="137" width="13" height="90" rx="3"/>
+      <rect x="490" y="111" width="13" height="116" rx="3"/>
+    </g>
+  </g>
+</svg>
