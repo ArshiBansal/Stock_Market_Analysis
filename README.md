@@ -35,8 +35,9 @@
 - [Six stops along the investigation](#what-you-can-explore)
 - [Follow the evidence](#market-data-to-model-score)
 - [Open the lab](#launch-zephyr)
-- [Architecture guide](ARCHITECTURE.md)
 - [Find your way around the project](#project-map)
+- [Go beyond the dashboard](#beyond-the-dashboard)
+- [Forecast limitations](LIMITATIONS.md)
 - [Check the experiments](#tests)
 - [The researcher's field notes](#data-models-and-limitations)
 - [The side room: news and sentiment](#news-and-sentiment-modules)
@@ -207,8 +208,12 @@ Stock_Market_Analysis/
 ├── config.py               # Project settings, ticker universe, model choices
 ├── requirements.txt        # Python dependencies
 ├── ARCHITECTURE.md         # Application architecture and component relationships
+├── METHODOLOGY.md          # Data preparation, evaluation, and forecast methodology
+├── LIMITATIONS.md          # Data, baseline, evaluation, and forecast caveats
 ├── assets/
-│   └── zephyr-banner.svg   # Project banner
+│   ├── zephyr-banner.svg   # Project banner
+│   ├── architecture-banner.svg
+│   └── limitations-banner.svg
 ├── data/
 │   ├── fetch.py            # Yahoo Finance quotes and OHLCV
 │   ├── preprocess.py       # Cleaning and quality checks
@@ -225,6 +230,36 @@ Stock_Market_Analysis/
 └── notebooks/
     └── experiments.ipynb   # Experimental analysis notebook
 ```
+
+<h2 align="center" id="beyond-the-dashboard">⌘ Go beyond the dashboard</h2>
+
+<div align="center">
+
+*Curious about what happens behind the charts? Continue the story from two different angles.*
+
+<table>
+<tr>
+<td align="center" width="33%">
+<h3>◈ Architecture</h3>
+<p>Trace the route from the Streamlit screens through data preparation and model evaluation to external services.</p>
+<a href="ARCHITECTURE.md"><strong>Explore the system map →</strong></a>
+</td>
+<td align="center" width="33%">
+<h3>⤷ Methodology</h3>
+<p>Follow how market observations become features, how holdouts are formed, and how to interpret the resulting scores.</p>
+<a href="METHODOLOGY.md"><strong>Follow the research trail →</strong></a>
+</td>
+<td align="center" width="33%">
+<h3>⚑ Limitations</h3>
+<p>See where upstream data, baseline behavior, evaluation design, and the forecast interface set boundaries.</p>
+<a href="LIMITATIONS.md"><strong>Read the field notes →</strong></a>
+</td>
+</tr>
+</table>
+
+<sub>Different questions, complementary guides: how the project is assembled and how its experiments are conducted.</sub>
+
+</div>
 
 <h2 align="center" id="tests">✓ Check the experiments</h2>
 
