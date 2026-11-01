@@ -10,6 +10,8 @@
 
 *Step into a small research room where every chart starts with data, every model faces a test, and no prediction gets the final word.*
 
+[↗ Open the live Zephyr dashboard](https://stockmarketanalysis-ljamupzbn5isxz5tnngeis.streamlit.app/)
+
 [Explore the app](#launch-zephyr) · [See the workflow](#market-data-to-model-score) · [Read the fine print](#data-models-and-limitations)
 
 <br>
