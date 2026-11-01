@@ -65,12 +65,17 @@ def main() -> None:
     with tabs[5]:
         render_ai_forecast(filters)
 
-    # ---------- Footer ----------
+    # ---------- Footer (Centered) ----------
     st.markdown("---")
-    st.caption(
-        f"{DISCLAIMER}  \n"
-        f"Last refreshed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}  \n"
-        f"Built by [Arshi Bansal](https://arshibansal.github.io/Personal_Portfolio/)"
+    st.markdown(
+        f"""
+        <div style='text-align: center; color: gray; font-size: 0.9rem;'>
+            {DISCLAIMER}<br>
+            Last refreshed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}<br>
+            Built by <a href='https://arshibansal.github.io/Personal_Portfolio/' target='_blank'>Arshi Bansal</a>
+        </div>
+        """,
+        unsafe_allow_html=True
     )
 
 
