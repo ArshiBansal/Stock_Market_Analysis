@@ -316,7 +316,7 @@ Distributed under the [MIT License](LICENSE).
 
 <br>
 
-**The session ends; the questions stay open.** &nbsp; `｡･:*:･ﾟ★,｡･:*:･ﾟ☆`
+**The session ends; the questions stay open.** &nbsp;
 
 <sub>Made for thoughtful experiments, careful comparisons, and better questions—not certainty.</sub>
 
