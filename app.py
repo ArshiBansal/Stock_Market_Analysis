@@ -69,7 +69,8 @@ def main() -> None:
     st.markdown("---")
     st.caption(
         f"{DISCLAIMER}  \n"
-        f"Last refreshed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        f"Last refreshed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}  \n"
+        f"Built by [Arshi Bansal](https://arshibansal.github.io/Personal_Portfolio/)"
     )
 
 
