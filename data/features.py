@@ -121,9 +121,9 @@ def add_technical_features(
     df["target_close"] = df["Close"].shift(-1)
 
     if dropna:
-        # Drop rows that still contain NaNs in the core feature set
+        # Keep the latest feature row available for inference even without a future target.
         feature_cols = get_feature_columns(df)
-        df = df.dropna(subset=feature_cols + ["target_return_1d"])
+        df = df.dropna(subset=feature_cols)
 
     return df
 
@@ -153,16 +153,24 @@ def create_supervised_dataset(
     df: pd.DataFrame,
     target_col: str = "target_return_1d",
     dropna: bool = True,
+    horizon: int = 1,
 ) -> tuple[pd.DataFrame, pd.Series]:
     """
     Split a feature-enhanced DataFrame into X (features) and y (target).
 
-    Guarantees no leakage: target is already shifted in add_technical_features.
+    For return targets, ``horizon`` is the cumulative close-to-close return over
+    that many trading observations. Features remain aligned to the start date.
     """
+    if isinstance(horizon, bool) or not isinstance(horizon, int) or horizon < 1:
+        raise ValueError("horizon must be a positive integer")
+
     feature_cols = get_feature_columns(df)
 
     X = df[feature_cols].copy()
-    y = df[target_col].copy()
+    if target_col == "target_return_1d":
+        y = df["Close"].shift(-horizon).div(df["Close"]).sub(1).rename(target_col)
+    else:
+        y = df[target_col].copy()
 
     if dropna:
         mask = X.notna().all(axis=1) & y.notna()
