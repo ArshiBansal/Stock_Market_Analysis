@@ -35,6 +35,7 @@ def render_neural_networks(filters: Dict[str, Any]) -> None:
     ticker = filters.get("ticker")
     start_date = filters.get("start_date")
     end_date = filters.get("end_date")
+    horizon = filters.get("horizon", 1)
 
     if not ticker:
         st.warning("Please select a ticker from the sidebar.")
@@ -73,8 +74,12 @@ def render_neural_networks(filters: Dict[str, Any]) -> None:
         st.error(f"Not enough data for sequence length {seq_len}. Try a shorter sequence or longer history.")
         return
 
-    X, y = create_supervised_dataset(df, target_col="target_return_1d")
-    X_train, X_test, y_train, y_test = chronological_split(X, y, test_size=0.2)
+    X, y = create_supervised_dataset(
+        df, target_col="target_return_1d", horizon=horizon
+    )
+    X_train, X_test, y_train, y_test = chronological_split(
+        X, y, test_size=0.2, gap=horizon
+    )
 
     # ------------------------------------------------------------------
     # Train button

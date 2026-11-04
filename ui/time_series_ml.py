@@ -27,6 +27,7 @@ def render_time_series_ml(filters: Dict[str, Any]) -> None:
     ticker = filters.get("ticker")
     start_date = filters.get("start_date")
     end_date = filters.get("end_date")
+    horizon = filters.get("horizon", 1)
     selected_model = filters.get("model", "XGBoost")
 
     if not ticker:
@@ -90,7 +91,7 @@ def render_time_series_ml(filters: Dict[str, Any]) -> None:
     # ------------------------------------------------------------------
     # Model comparison
     # ------------------------------------------------------------------
-    st.subheader("Model Comparison (Chronological Split)")
+    st.subheader(f"Model Comparison ({horizon}-Trading-Day Return)")
 
     ml_and_baselines = BASELINE_MODELS + [m for m in ML_MODELS if m in ML_MODEL_MAP]
 
@@ -105,13 +106,16 @@ def render_time_series_ml(filters: Dict[str, Any]) -> None:
         if not models_to_run:
             st.warning("Select at least one model.")
         else:
-            X, y = create_supervised_dataset(df, target_col="target_return_1d")
+            X, y = create_supervised_dataset(
+                df, target_col="target_return_1d", horizon=horizon
+            )
 
             with st.spinner("Training and evaluating models..."):
                 results_df = run_model_comparison(
                     X, y,
                     models=models_to_run,
                     test_size=0.2,
+                    horizon=horizon,
                 )
 
             st.dataframe(

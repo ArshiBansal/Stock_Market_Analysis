@@ -32,10 +32,12 @@ def render_performance(filters: Dict[str, Any]) -> None:
     ticker = filters.get("ticker")
     start_date = filters.get("start_date")
     end_date = filters.get("end_date")
+    horizon = filters.get("horizon", 1)
 
     if not ticker:
         st.warning("Please select a ticker from the sidebar.")
         return
+    st.caption(f"Evaluating cumulative returns over {horizon} trading day(s).")
 
     # ------------------------------------------------------------------
     # Model selection
@@ -80,7 +82,9 @@ def render_performance(filters: Dict[str, Any]) -> None:
         st.error("Insufficient data after feature engineering.")
         return
 
-    X, y = create_supervised_dataset(df, target_col="target_return_1d")
+    X, y = create_supervised_dataset(
+        df, target_col="target_return_1d", horizon=horizon
+    )
 
     # ------------------------------------------------------------------
     # Run comparison
@@ -91,6 +95,7 @@ def render_performance(filters: Dict[str, Any]) -> None:
                 X, y,
                 models=selected_models,
                 test_size=test_size,
+                horizon=horizon,
             )
 
         if results_df.empty:
@@ -151,7 +156,9 @@ def render_performance(filters: Dict[str, Any]) -> None:
                 index=0,
             )
             with st.spinner(f"Running walk-forward for {wf_model}..."):
-                wf_result = walk_forward_validation(X, y, model_name=wf_model, n_splits=5)
+                wf_result = walk_forward_validation(
+                    X, y, model_name=wf_model, n_splits=5, horizon=horizon
+                )
 
             st.write("Average metrics across folds:")
             st.json(wf_result["average"])
