@@ -74,19 +74,24 @@ def chronological_split(
     X: pd.DataFrame | np.ndarray,
     y: pd.Series | np.ndarray,
     test_size: float = 0.2,
+    gap: int = 0,
 ) -> Tuple[Any, Any, Any, Any]:
     """
-    Simple chronological train/test split (no shuffling).
+    Chronological train/test split with an optional gap between partitions.
     """
+    if isinstance(gap, bool) or not isinstance(gap, int) or gap < 0:
+        raise ValueError("gap must be a non-negative integer")
+
     n = len(X)
     split_idx = int(n * (1 - test_size))
+    train_end = max(0, split_idx - gap)
 
     if isinstance(X, pd.DataFrame):
-        X_train, X_test = X.iloc[:split_idx], X.iloc[split_idx:]
-        y_train, y_test = y.iloc[:split_idx], y.iloc[split_idx:]
+        X_train, X_test = X.iloc[:train_end], X.iloc[split_idx:]
+        y_train, y_test = y.iloc[:train_end], y.iloc[split_idx:]
     else:
-        X_train, X_test = X[:split_idx], X[split_idx:]
-        y_train, y_test = y[:split_idx], y[split_idx:]
+        X_train, X_test = X[:train_end], X[split_idx:]
+        y_train, y_test = y[:train_end], y[split_idx:]
 
     return X_train, X_test, y_train, y_test
 
@@ -97,11 +102,12 @@ def chronological_split(
 def _run_baseline(
     name: str,
     X_train, y_train, X_test, y_test,
+    horizon: int = 1,
 ) -> Dict[str, Any]:
     if name == "NaiveLastClose":
         model = NaiveLastClose()
     elif name == "NaiveLastReturn":
-        model = NaiveLastReturn()
+        model = NaiveLastReturn(horizon=horizon)
     elif name == "MovingAverage":
         model = MovingAverageBaseline(window=5)
     else:
@@ -194,6 +200,7 @@ def run_model_comparison(
     models: Optional[List[str]] = None,
     test_size: float = 0.2,
     seq_len: int = 30,
+    horizon: int = 1,
 ) -> pd.DataFrame:
     """
     Run a set of models on the same chronological split and return a summary table.
@@ -208,14 +215,16 @@ def run_model_comparison(
             "LSTM",
         ]
 
-    X_train, X_test, y_train, y_test = chronological_split(X, y, test_size=test_size)
+    X_train, X_test, y_train, y_test = chronological_split(
+        X, y, test_size=test_size, gap=horizon
+    )
 
     results = []
 
     for name in models:
         try:
             if name in ("NaiveLastClose", "NaiveLastReturn", "MovingAverage"):
-                res = _run_baseline(name, X_train, y_train, X_test, y_test)
+                res = _run_baseline(name, X_train, y_train, X_test, y_test, horizon=horizon)
             elif name in ML_MODEL_MAP:
                 res = _run_ml(name, X_train, y_train, X_test, y_test)
             elif name in ("LSTM", "GRU"):
@@ -248,12 +257,13 @@ def walk_forward_validation(
     y: pd.Series,
     model_name: str = "XGBoost",
     n_splits: int = 5,
+    horizon: int = 1,
     **model_kwargs,
 ) -> Dict[str, Any]:
     """
     Simple walk-forward (expanding window) validation using TimeSeriesSplit.
     """
-    tscv = TimeSeriesSplit(n_splits=n_splits)
+    tscv = TimeSeriesSplit(n_splits=n_splits, gap=horizon)
     scores = []
 
     for train_idx, test_idx in tscv.split(X):
@@ -266,7 +276,7 @@ def walk_forward_validation(
             preds = model.predict(X_te)
         else:
             # Fallback to baseline for simplicity
-            model = NaiveLastReturn()
+            model = NaiveLastReturn(horizon=horizon)
             model.fit(X_tr, y_tr)
             preds = model.predict(X_te)
 
