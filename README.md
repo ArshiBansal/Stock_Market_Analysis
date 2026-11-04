@@ -62,7 +62,7 @@ This is not a story where the model knows the ending. It is a place to ask bette
 | What observations are being analyzed? | **Raw Data** |
 | What patterns can features and classic models capture? | **Time Series + ML** |
 | How do neural networks and model scores compare? | **Neural Networks** · **Performance Metrics** |
-| What does the selected model estimate for the next period? | **AI Forecast** |
+| What does the selected model estimate over the selected horizon? | **AI Forecast** |
 
 <h2 align="center" id="what-you-can-explore">◈ Six stops along the investigation</h2>
 
@@ -75,7 +75,7 @@ The sidebar is your field notebook: choose a region, pick a ticker, set a date r
 | **03 · Time Series + ML** | Candlestick chart, feature preview, model comparison, and MAE chart | Naive baselines, Random Forest, Extra Trees, HistGradientBoosting, XGBoost, LightGBM |
 | **04 · Neural Networks** | Train/test metrics, loss curves, and predicted-versus-actual returns | LSTM or GRU |
 | **05 · Performance Metrics** | Model ranking, MAE and directional-accuracy charts, optional walk-forward scores | Chronological holdout; optional expanding-window validation |
-| **06 · AI Forecast** | Holdout metrics, an illustrative next-period return and price, and test-set comparison | Selected baseline or classical ML model |
+| **06 · AI Forecast** | Holdout metrics, an illustrative horizon return and price, and test-set comparison | Selected baseline or classical ML model |
 
 <p>
 <img alt="Price data" src="https://img.shields.io/badge/01%20%E2%80%94%20Data-173B5E?style=flat-square">
@@ -95,7 +95,7 @@ The map is selective rather than complete. Browse the configured companies by re
 | Europe | `ASML.AS` · `SAP.DE` · `NESN.SW` |
 | Australia | `CBA.AX` · `BHP.AX` · `CSL.AX` |
 
-> **A note on the horizon control:** the sidebar offers 1-, 3-, and 5-day selections, but the current AI Forecast implementation predicts a **next-period return**; it does not recursively generate a multi-day path. Treat the displayed horizon as UI context, <mark style="background-color:#473B67;color:#F5F7FC;">not a validated multi-day forecast</mark>.
+> **A note on the horizon control:** the sidebar's 1-, 3-, and 5-day selection sets the target to the cumulative close-to-close return over that many trading observations. It is a direct horizon estimate, not a recursively generated daily path or a guarantee of future performance.
 
 <h2 align="center" id="market-data-to-model-score">⤷ Follow the evidence</h2>
 
@@ -105,7 +105,7 @@ The journey begins with market observations, not a prediction. Clean the record,
 flowchart LR
     A["Yahoo Finance<br/>quotes & daily OHLCV"] --> B["Clean & inspect<br/>timestamps · missing values"]
     B --> C["Engineer features<br/>returns · moving averages · volatility"]
-    C --> D["Shift target forward<br/>next-period return"]
+    C --> D["Shift target forward<br/>selected-horizon return"]
     D --> E["Split in time order<br/>train → holdout"]
     E --> F{"Choose an experiment"}
     F --> G["Naive baselines"]
@@ -130,7 +130,7 @@ flowchart LR
 
 | Family | Available choices | Purpose |
 |---|---|---|
-| **The baseline** | `NaiveLastClose`, `NaiveLastReturn` | The quiet starting point: can a simple reference already do well? |
+| **The baseline** | `NaiveLastClose`, `NaiveLastReturn` | Zero-return and most-recent-observed-return references for the selected horizon |
 | **The tree models** | `RandomForest`, `ExtraTrees`, `HistGradientBoosting`, `XGBoost`, `LightGBM` | Several ways of learning patterns from engineered features |
 | **The sequence models** | `LSTM`, `GRU` | Neural-network experiments that read ordered sequences |
 
@@ -289,7 +289,7 @@ Every investigation has boundaries. Keep these notes nearby as you read the char
 - **Data source:** market history and quotes are fetched through `yfinance` from Yahoo Finance. Availability, coverage, timestamps, and delays are outside this project's control.
 - **Ticker coverage:** the configured universe includes selected listings in the United States, United Kingdom, Europe, and Australia. It is not a complete exchange listing.
 - **History and interval:** the dashboard requests daily OHLCV history. The data-fetching helper accepts other intervals, but intraday analysis is not the workflow displayed by the current UI.
-- **Forecast target:** engineered targets are shifted to the next observation. This is a short-horizon experiment, not a price guarantee.
+- **Forecast target:** engineered targets use the cumulative close-to-close return for the selected 1-, 3-, or 5-trading-day horizon. This is an experiment, not a price guarantee.
 - **Validation:** comparison screens use an ordered train/test split; optional walk-forward validation is available for selected classical ML models. Neither guarantees future performance.
 - **Model choice:** XGBoost and LightGBM are listed in the requirements, but the ML module treats them as optional imports; availability depends on successful installation.
 - **Forecast horizon:** choosing 3 or 5 days does not currently roll a one-step model forward for a corresponding multi-step forecast.
