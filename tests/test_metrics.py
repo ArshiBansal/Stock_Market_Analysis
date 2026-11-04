@@ -8,7 +8,11 @@ import numpy as np
 import pandas as pd
 
 from utils.metrics import mae, rmse, directional_accuracy, evaluate_forecast
-from models.train_eval import evaluate_regression, directional_accuracy as dir_acc_train_eval
+from models.train_eval import (
+    chronological_split,
+    evaluate_regression,
+    directional_accuracy as dir_acc_train_eval,
+)
 
 
 @pytest.fixture
@@ -114,3 +118,15 @@ def test_directional_accuracy_consistency():
     acc1 = directional_accuracy(y_true, y_pred)
     acc2 = dir_acc_train_eval(y_true, y_pred)
     assert acc1 == pytest.approx(acc2)
+
+
+def test_chronological_split_leaves_requested_gap():
+    X = pd.DataFrame({"value": range(10)})
+    y = pd.Series(range(10))
+
+    X_train, X_test, y_train, y_test = chronological_split(X, y, test_size=0.3, gap=2)
+
+    assert X_train.index.tolist() == list(range(5))
+    assert X_test.index.tolist() == list(range(7, 10))
+    assert y_train.index.equals(X_train.index)
+    assert y_test.index.equals(X_test.index)

@@ -97,7 +97,30 @@ def test_create_supervised_dataset(sample_ohlcv):
 
 def test_features_with_dropna(sample_ohlcv):
     df_feat = add_technical_features(sample_ohlcv, dropna=True)
-    # After dropna there should be no NaNs in the feature + target set
+    # Keep the newest feature row for inference; its future target is unknown.
     feature_cols = get_feature_columns(df_feat)
-    cols_to_check = feature_cols + ["target_return_1d"]
-    assert df_feat[cols_to_check].isna().sum().sum() == 0
+    assert df_feat[feature_cols].isna().sum().sum() == 0
+    assert df_feat.index[-1] == sample_ohlcv.index[-1]
+    assert pd.isna(df_feat["target_return_1d"].iloc[-1])
+
+
+@pytest.mark.parametrize("horizon", [1, 3, 5])
+def test_create_supervised_dataset_horizon(sample_ohlcv, horizon):
+    df_feat = add_technical_features(sample_ohlcv, dropna=True)
+    X, y = create_supervised_dataset(df_feat, horizon=horizon)
+
+    assert X.index.equals(y.index)
+    assert y.index[-1] == df_feat.index[-horizon - 1]
+    expected = (
+        df_feat.loc[y.index[-1] + pd.offsets.BDay(horizon), "Close"]
+        / df_feat.loc[y.index[-1], "Close"]
+        - 1
+    )
+    assert y.iloc[-1] == pytest.approx(expected)
+
+
+@pytest.mark.parametrize("horizon", [0, -1, 1.5, True])
+def test_create_supervised_dataset_rejects_invalid_horizon(sample_ohlcv, horizon):
+    df_feat = add_technical_features(sample_ohlcv, dropna=True)
+    with pytest.raises(ValueError, match="positive integer"):
+        create_supervised_dataset(df_feat, horizon=horizon)
