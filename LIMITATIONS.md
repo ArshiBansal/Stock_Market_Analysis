@@ -64,23 +64,19 @@ The Overview and AI Forecast views retrieve the latest quote independently of th
 
 ### Cleaning cannot recover missing history
 
-The common model screens use limited forward filling for missing OHLCV values. A carried-forward value is not a replacement for the true missing observation. Feature engineering also removes early rows without enough rolling history and the final row without a next-observation target. The effective sample can therefore be smaller than the selected date range suggests.
+The common model screens use limited forward filling for missing OHLCV values. A carried-forward value is not a replacement for the true missing observation. Feature engineering removes early rows without enough rolling history. It preserves the latest row's features for inference, while supervised evaluation excludes rows without enough future observations for the selected horizon. The effective sample can therefore be smaller than the selected date range suggests.
 
 <h2 align="center" id="2--the-limits-of-the-model-room">02 · The limits of the model room</h2>
 
 ### Narrow inputs, narrow experiments
 
-The supervised models use engineered OHLCV-derived inputs and a next-observation return target. They do not currently incorporate company fundamentals, macroeconomic variables, order-book data, transaction costs, or news sentiment.
+The supervised models use engineered OHLCV-derived inputs and a direct cumulative close-to-close return target over the selected 1-, 3-, or 5-trading-day horizon. They do not currently incorporate company fundamentals, macroeconomic variables, order-book data, transaction costs, or news sentiment.
 
 The repository includes VADER and FinBERT news-analysis helpers, but the News & Sentiment tab was removed. **Those sentiment outputs are not features in the live dashboard forecasts.**
 
-### A baseline that needs special caution
+### Baselines are return predictions
 
-> **⚠️ `NaiveLastClose` is not a trustworthy last-close reference in the current supervised screens.**
-
-The supervised dataset passes feature-only columns to the baseline, not a DataFrame containing `Close`. When `NaiveLastClose` cannot find that column, its implementation reads the first feature column instead. In the current feature order, that is `return_1d`; the prediction target is a next-observation return. The resulting score is therefore **not a valid last-close or zero-return baseline**, despite the model name and docstring.
-
-Treat its entries in model comparisons and AI Forecast as affected by this implementation mismatch. Compare other models to an independently verified reference until the baseline implementation is corrected.
+`NaiveLastClose` is represented as a zero-return forecast, equivalent to carrying the current close forward. `NaiveLastReturn` repeats the latest observed one-day return over the selected horizon. These are return baselines; they do not model execution costs or imply that holding a security is risk-free.
 
 ### Model availability and compute
 
@@ -110,14 +106,14 @@ Directional accuracy ignores zero actual returns. The dashboard does not calcula
 
 <h2 align="center" id="4--what-the-forecast-screen-does-not-forecast">04 · What the forecast screen does not forecast</h2>
 
-### Its multi-day horizon control does not roll forward
+### A horizon estimate is not a daily forecast path
 
-The sidebar offers **1-, 3-, and 5-day** horizon choices. The AI Forecast screen, however, estimates a single next-observation return. It does not recursively generate a 3-day or 5-day path. The displayed horizon should **not** be read as a validated multi-day prediction.
+The sidebar offers **1-, 3-, and 5-trading-day** horizons. For each choice, the model estimates the cumulative close-to-close return from the forecast origin to that horizon. It does not recursively generate a sequence of daily predictions. A direct horizon estimate is not a validated trading strategy or a guarantee of future performance.
 
 The implied price is illustrative arithmetic:
 
 ```text
-latest quote × (1 + predicted next-observation return)
+latest quote × (1 + predicted horizon return)
 ```
 
 It is not a target price, probability range, confidence interval, or guaranteed future quote.
