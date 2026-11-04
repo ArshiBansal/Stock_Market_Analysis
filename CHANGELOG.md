@@ -31,7 +31,7 @@
 
 <h2 align="center" id="the-shape-of-the-change">The shape of the change</h2>
 
-The earlier app was a **single, all-in-one Streamlit script**, with broad interactive forecasting, market-analysis, news, and subscription features. The supplied notebook was a wide-ranging, multi-ticker research workspace. The current repository organizes the dashboard into UI, data, model, NLP, and utility modules, and makes its main forecasting workflow more explicitly about daily observations, feature-based next-period returns, and chronological evaluation.
+The earlier app was a **single, all-in-one Streamlit script**, with broad interactive forecasting, market-analysis, news, and subscription features. The supplied notebook was a wide-ranging, multi-ticker research workspace. The current repository organizes the dashboard into UI, data, model, NLP, and utility modules, and makes its main forecasting workflow more explicitly about daily observations, feature-based horizon returns, and chronological evaluation.
 
 That change is principally one of **structure and scope**. This comparison does not establish that the current models are more accurate, profitable, or reliable.
 
@@ -42,7 +42,7 @@ That change is principally one of **structure and scope**. This comparison does 
 | Application shape | A large `streamlit.py` file contained page setup, fetching, analysis, model code, charts, news, and subscription handling. | `app.py` composes six `ui/` views; data, features, models, configuration, NLP, and metrics have separate packages. |
 | Main market-data workflow | The dashboard loaded five years of daily history and also requested a one-minute live-price series with a 25-second cache. | Dashboard screens fetch daily history for a selected date range, defaulting to about two years; quotes and history are fetched through `yfinance`. |
 | Ticker selection | Three technology-focused groups covering 23 listed symbols. | A configured, curated set across the United States, United Kingdom, Europe, and Australia. |
-| Feature design | The notebook worked with a multi-ticker CSV and engineered grouped features such as moving averages, lagged closes, and direction labels. The app used close-price lags for selected models. | Reusable per-ticker features include returns and lags, moving averages, volatility, momentum, candle shape, and volume ratios; the target is shifted to the next observation's return. |
+| Feature design | The notebook worked with a multi-ticker CSV and engineered grouped features such as moving averages, lagged closes, and direction labels. The app used close-price lags for selected models. | Reusable per-ticker features include returns and lags, moving averages, volatility, momentum, candle shape, and volume ratios; the target is a selected-horizon close-to-close return. |
 | Model organization | The app bundled several different model/task types into a “Train All 6” action; the notebook explored additional time-series, supervised, unsupervised, and neural-network methods. | Model factories and training utilities separate baseline, classical ML, and sequence-model experiments. |
 | Evaluation | The old app reported MAE, RMSE, MAPE, R², and a direction score; the notebook included model metrics and analytical/statistical tests. | Shared comparison screens report MAE, RMSE, and return-direction accuracy on chronological holdouts; the Performance Metrics screen also offers walk-forward validation. |
 | Documentation and tests | The supplied app and notebook were the main reference artifacts for the earlier workflow. | The repository includes focused data, feature, and metric tests plus README, architecture, methodology, and limitations guides. |
@@ -61,8 +61,8 @@ The supplied `streamlit.py` provided Overview, Raw Data, Time Series + ML, Neura
 | **Raw Data** | Adds explicit quality reporting, selectable missing-value handling, and a cleaned-history CSV download. |
 | **Time Series + ML** | Uses engineered return features and compares selected baselines and classical regressors on a chronological split. |
 | **Neural Networks** | Provides configurable LSTM/GRU sequence length and epochs, training/validation curves, and return predictions. |
-| **Performance Metrics** | Uses MAE, RMSE, and directional accuracy for comparable return experiments, with optional expanding-window walk-forward validation; this differs from the earlier app's five-metric price-oriented scorecard. |
-| **AI Forecast** | Trains the selected supported model for a single next-period return estimate and displays holdout metrics. |
+| **Performance Metrics** | Uses MAE, RMSE, and directional accuracy for comparable horizon-specific return experiments, with optional expanding-window walk-forward validation; this differs from the earlier app's five-metric price-oriented scorecard. |
+| **AI Forecast** | Trains the selected supported model for a direct 1-, 3-, or 5-trading-day cumulative return estimate and displays holdout metrics. |
 
 ### Model names are not a benchmark result
 
@@ -70,7 +70,7 @@ The earlier Streamlit app's “Train All 6 Models” action grouped LightGBM, Pr
 
 The current supervised dashboard instead offers last-close/last-return baselines, Random Forest, Extra Trees, HistGradientBoosting, XGBoost, LightGBM, and separate LSTM/GRU experiments. These model lists are **not directly comparable**: target definitions, features, samples, forecast horizons, and evaluation procedures changed. No numerical claim that one snapshot outperforms the other is made here.
 
-> **Known current caveat:** the `NaiveLastClose` baseline is passed feature-only input in supervised screens and can read the first feature column rather than an observed close. See [Limitations](LIMITATIONS.md) before treating its score as a valid last-close reference.
+The `NaiveLastClose` baseline represents a zero-return prediction, and `NaiveLastReturn` uses each row's latest known one-day return. The shared horizon selection now changes the supervised return target and evaluation across forecast screens.
 
 <h2 align="center" id="notebook-research-compared-with-the-current-app">Notebook research compared with the current app</h2>
 
@@ -92,7 +92,7 @@ The following features existed in the supplied earlier application but are **not
 | Earlier capability | Current status |
 |---|---|
 | One-minute live-price ticker with short cache refresh | Replaced by latest-available quote/history retrieval and a data-age indicator; the current Overview is not a one-minute live feed. |
-| Selectable 10–180 business-day forecast and lookback controls | Replaced by 1-, 3-, and 5-day sidebar selections; the forecast implementation itself produces a single next-period estimate rather than a multi-day path. |
+| Selectable 10–180 business-day forecast and lookback controls | Replaced by 1-, 3-, and 5-trading-day direct cumulative-return estimates; these are not recursively generated daily paths. |
 | Multi-model future-price ensemble weighted by inverse MAE | Not present in the current AI Forecast screen. |
 | Forecast-based BUY/SELL markers from moving-average crossovers | Not present. Current project output is educational model analysis, not a trading signal service. |
 | Prophet-based future path in the Streamlit forecast tab | Not present in the current dashboard model workflow. Prophet appears in the supplied notebook and legacy app, but is not one of the current configured dashboard models. |
