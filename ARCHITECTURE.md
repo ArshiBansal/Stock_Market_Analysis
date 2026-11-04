@@ -112,7 +112,7 @@ Yahoo Finance is accessed at runtime through `yfinance` for quotes, historical O
 
 - **Modular Streamlit presentation:** `app.py` composes the shared sidebar and six focused tab renderers in `ui/`.
 - **Separated analysis responsibilities:** fetching, cleaning, feature engineering, model factories, and evaluation live in distinct Python packages.
-- **Time-aware evaluation:** supervised targets are shifted to the next observation and comparisons use chronological splits rather than shuffled samples.
+- **Time-aware evaluation:** supervised targets cover the selected 1-, 3-, or 5-trading-day horizon and comparisons use chronological splits rather than shuffled samples.
 
 <h2 align="center" id="component-relationships">02 · A closer look at the components</h2>
 
@@ -206,7 +206,7 @@ flowchart LR
 | `ui.time_series_ml` | Presentation | Dashboard view | Charts history and starts classical ML and baseline comparisons |
 | `ui.neural_networks` | Presentation | Dashboard view | Prepares sequences, trains LSTM or GRU, and displays evaluation charts |
 | `ui.performance` | Presentation | Dashboard view | Compares model metrics and optionally runs walk-forward validation |
-| `ui.ai_forecast` | Presentation | Dashboard view | Generates a next-period estimate and shows holdout performance |
+| `ui.ai_forecast` | Presentation | Dashboard view | Generates a selected-horizon estimate and shows holdout performance |
 | `data.fetch` | Analysis | Data integration module | Retrieves quotes, daily OHLCV data, and records ticker fetch failures |
 | `data.preprocess` | Analysis | Data preparation module | Sorts and cleans price observations, handles missing values, and reports quality |
 | `data.features` | Analysis | Feature engineering module | Builds technical and lagged features and shifted supervised targets |
