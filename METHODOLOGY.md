@@ -52,13 +52,13 @@ The feature pipeline computes numeric indicators from observed OHLCV columns. Co
 
 ### Define the prediction target
 
-The primary supervised-learning target is the **return of the next observation**:
+The primary supervised-learning target is the **cumulative close-to-close return over the selected 1-, 3-, or 5-trading-day horizon**:
 
 ```text
-target_return_1d[t] = return_1d[t + 1]
+target_return_h[t] = Close[t + h] / Close[t] - 1
 ```
 
-The feature row at time *t* is paired with the next observed return. A next-period close target is also constructed, but current supervised screens select `target_return_1d`.
+The feature row at time *t* is paired with the close-to-close return at the selected horizon. Rows without enough future observations are excluded from supervised evaluation, while the newest complete feature row remains available for inference.
 
 The feature selector excludes raw OHLCV columns, ticker and region metadata, and target columns. Rolling operations are computed over the ordered history; initial rows that lack the required history are removed when `dropna=True`.
 
@@ -66,9 +66,9 @@ The feature selector excludes raw OHLCV columns, ticker and region metadata, and
 
 ## 04 · Establish a time-aware test
 
-For the standard comparison, the dataset is split **without shuffling**: the first 80% of observations form the training set and the final 20% form the holdout. The Performance Metrics screen allows a test fraction between 10% and 40%.
+For the standard comparison, the dataset is split **without shuffling**: the first 80% of observations form the training set and the final 20% form the holdout. A gap equal to the selected forecast horizon separates the partitions, preventing training labels from overlapping the test period. The Performance Metrics screen allows a test fraction between 10% and 40%.
 
-For optional walk-forward evaluation, the project uses scikit-learn `TimeSeriesSplit` with five splits by default. Each fold fits on an earlier time segment and scores a later segment; the results are summarized across folds.
+For optional walk-forward evaluation, the project uses scikit-learn `TimeSeriesSplit` with five splits by default and the same horizon-sized gap. Each fold fits on an earlier time segment and scores a later segment; the results are summarized across folds.
 
 ### Neural-network sequence preparation
 
@@ -102,10 +102,10 @@ The app also plots predicted and actual returns and, where available, model trai
 
 ## 07 · From score to displayed forecast
 
-The AI Forecast screen fits the selected baseline or classical ML model on the training partition, reports its holdout metrics, then estimates a **single next-period return** from the latest feature row for a classical ML model. It displays the latest quote as context and calculates an illustrative implied price as:
+The AI Forecast screen fits the selected baseline or classical ML model on the training partition, reports its holdout metrics, then estimates the selected horizon's cumulative return from the latest feature row. It displays the latest quote as context and calculates an illustrative implied price as:
 
 ```text
-illustrative price = latest quote × (1 + predicted next-period return)
+illustrative price = latest quote × (1 + predicted horizon return)
 ```
 
 This value is a model output, not a price target, confidence interval, or guaranteed future quote.
