@@ -42,15 +42,17 @@ flowchart TD
     subgraph Presentation["Presentation layer"]
         App["Streamlit application"]
         Sidebar["Shared sidebar filters"]
-        Tabs["Six dashboard tabs"]
+        Tabs["Seven dashboard tabs"]
     end
     subgraph Analysis["Analysis layer"]
         Fetch["Market data fetching"]
         Clean["Cleaning and quality checks"]
-        Features["Technical feature engineering"]
+        Features["Technical feature engineering and session-state cache"]
         Training["Training and evaluation"]
+        Backtest["Backtesting engine"]
+        Persistence["Model persistence (joblib)"]
         Baselines["Baseline regressors"]
-        Classical["Classical machine learning"]
+        Classical["Classical machine learning (incl. Prophet)"]
         Sequences["TensorFlow LSTM and GRU"]
     end
     subgraph Supporting["Supporting modules"]
@@ -58,7 +60,7 @@ flowchart TD
         Sentiment["VADER and FinBERT sentiment"]
     end
     subgraph Services["External services"]
-        Yahoo["Yahoo Finance through yfinance"]
+        Yahoo["Yahoo Finance through yfinance (quotes, history, fundamentals)"]
         ModelHub["Hugging Face model hub"]
     end
 
@@ -69,16 +71,22 @@ flowchart TD
     Tabs -->|"requests quotes or history"| Fetch
     Fetch -->|"downloads quotes and OHLCV"| Yahoo
     Yahoo -->|"market observations"| Fetch
+    Fetch -->|"fundamental/company info"| Yahoo
     Fetch -->|"OHLCV frames"| Clean
     Clean -->|"validated observations"| Features
     Features -->|"feature matrix and target"| Training
+    Features -->|"cached supervised dataset"| Training
     Training -->|"selects reference model"| Baselines
     Training -->|"fits tabular models"| Classical
     Training -->|"fits sequence models"| Sequences
+    Training -->|"persists fitted model"| Persistence
+    Persistence -->|"loads reused model"| Training
     Baselines -->|"predictions"| Training
     Classical -->|"predictions"| Training
     Sequences -->|"predictions"| Training
     Training -->|"scores and predictions"| Tabs
+    Tabs -->|"signals and prices"| Backtest
+    Backtest -->|"equity curve and risk metrics"| Tabs
     News -->|"requests ticker headlines"| Yahoo
     News -->|"sends headlines for scoring"| Sentiment
     Sentiment -.->|"loads pretrained weights when needed"| ModelHub
@@ -98,21 +106,22 @@ flowchart TD
 | Classical machine learning | scikit-learn | `>=1.4.0` | Preprocessing, regressors, chronological evaluation, and metrics |
 | Classical machine learning | XGBoost | `>=2.0.0` | Optional gradient-boosted tree regressor |
 | Classical machine learning | LightGBM | `>=4.3.0` | Optional gradient-boosted tree regressor |
+| Classical machine learning | Prophet | optional | Direct horizon-return regression wrapper |
 | Deep learning | TensorFlow | `>=2.15.0` | LSTM and GRU sequence models |
-| Sentiment analysis | vaderSentiment | `>=3.3.2` | Lightweight headline sentiment |
-| Sentiment analysis | transformers and PyTorch | `>=4.38.0`; `>=2.1.0` | Optional FinBERT pipeline and model inference |
 
 Versions shown are minimum constraints from `requirements.txt`, not a lockfile or guarantee of compatibility on every operating system.
 
 <h3 align="center" id="data-storage-amp-external-services">Where the data goes</h3>
 
-Yahoo Finance is accessed at runtime through `yfinance` for quotes, historical OHLCV observations, and supporting news retrieval. FinBERT can obtain pretrained model files from the Hugging Face model hub when sentiment analysis is invoked. **There is no database, message broker, or durable market-data store:** fetched data and model results are handled in application memory. The configured `artifacts` directory is created by the application, but the current dashboard does not use it as a persistent model registry.
+Yahoo Finance is accessed at runtime through `yfinance` for quotes, historical OHLCV observations, fundamental/company info, and supporting news retrieval. FinBERT can obtain pretrained model files from the Hugging Face model hub when sentiment analysis is invoked. **There is no database, message broker, or durable market-data store:** fetched data and model results are handled in application memory. Trained classical ML models can be persisted to `artifacts/models/` through `models.persistence`, but persistence is a convenience cache, not a model registry with lineage or governance.
 
 <h3 align="center" id="key-architectural-decisions">Why the system is arranged this way</h3>
 
-- **Modular Streamlit presentation:** `app.py` composes the shared sidebar and six focused tab renderers in `ui/`.
-- **Separated analysis responsibilities:** fetching, cleaning, feature engineering, model factories, and evaluation live in distinct Python packages.
+- **Modular Streamlit presentation:** `app.py` composes the shared sidebar and seven focused tab renderers in `ui/`.
+- **Separated analysis responsibilities:** fetching, cleaning, feature engineering, model factories, backtesting, persistence, and evaluation live in distinct Python packages.
 - **Time-aware evaluation:** supervised targets cover the selected 1-, 3-, or 5-trading-day horizon and comparisons use chronological splits rather than shuffled samples.
+- **Session-state cache:** engineered feature/target datasets are cached per (ticker, horizon, window) to avoid re-fetching across tab switches.
+- **Model persistence:** fitted classical ML models are serialized to `artifacts/models/` and reused on subsequent forecast runs.
 
 <h2 align="center" id="component-relationships">02 · A closer look at the components</h2>
 
@@ -134,12 +143,15 @@ flowchart LR
         cNeural["ui.neural_networks"]
         cPerformance["ui.performance"]
         cForecast["ui.ai_forecast"]
+        cPortfolio["ui.portfolio"]
     end
     subgraph cAnalysis["Analysis and models"]
         cFetch["data.fetch"]
         cPreprocess["data.preprocess"]
         cFeatures["data.features"]
         cTrainEval["models.train_eval"]
+        cBacktest["models.backtest"]
+        cPersistence["models.persistence"]
         cBaselines["models.baselines"]
         cML["models.ml_models"]
         cDL["models.dl_models"]
@@ -158,12 +170,14 @@ flowchart LR
     cApp -->|"renders dashboard views"| cNeural
     cApp -->|"renders dashboard views"| cPerformance
     cApp -->|"renders dashboard views"| cForecast
+    cApp -->|"renders dashboard views"| cPortfolio
     cSidebar -->|"passes ticker and date filters"| cOverview
     cSidebar -->|"passes ticker and date filters"| cRaw
     cSidebar -->|"passes ticker model and dates"| cTime
     cSidebar -->|"passes ticker and dates"| cNeural
     cSidebar -->|"passes ticker and dates"| cPerformance
     cSidebar -->|"passes forecast selections"| cForecast
+    cSidebar -->|"passes ticker and region"| cPortfolio
     cOverview -->|"fetches latest quote"| cFetch
     cRaw -->|"loads history and cleans it"| cFetch
     cRaw -->|"checks quality and missing values"| cPreprocess
@@ -171,19 +185,24 @@ flowchart LR
     cNeural -->|"loads historical observations"| cFetch
     cPerformance -->|"loads historical observations"| cFetch
     cForecast -->|"loads quote and history"| cFetch
+    cPortfolio -->|"loads history and fundamentals"| cFetch
     cTime -->|"prepares supervised features"| cPreprocess
     cNeural -->|"prepares supervised features"| cPreprocess
     cPerformance -->|"prepares supervised features"| cPreprocess
     cForecast -->|"prepares supervised features"| cPreprocess
     cPreprocess -->|"clean OHLCV frames"| cFeatures
     cFeatures -->|"feature matrix and shifted target"| cTrainEval
+    cFeatures -->|"cached supervised dataset"| cTrainEval
     cTime -->|"runs model comparisons"| cTrainEval
     cPerformance -->|"runs comparison and validation"| cTrainEval
     cNeural -->|"builds and trains sequences"| cDL
     cNeural -->|"evaluates predictions"| cMetrics
     cForecast -->|"creates selected ML model"| cML
     cForecast -->|"creates selected baseline"| cBaselines
+    cForecast -->|"persists and reuses model"| cPersistence
     cForecast -->|"scores holdout predictions"| cMetrics
+    cPortfolio -->|"computes risk metrics"| cMetrics
+    cPortfolio -->|"runs backtest on signals"| cBacktest
     cTrainEval -->|"runs reference models"| cBaselines
     cTrainEval -->|"fits tabular estimators"| cML
     cTrainEval -->|"trains sequence estimators"| cDL
@@ -199,25 +218,26 @@ flowchart LR
 
 | Component | Layer | Type | Responsibility |
 |---|---|---|---|
-| `app.py` | Presentation | Streamlit entry point | Configures the page and renders the shared sidebar and six dashboard views |
+| `app.py` | Presentation | Streamlit entry point | Configures the page and renders the shared sidebar and seven dashboard views |
 | `ui.sidebar` | Presentation | Shared UI module | Collects region, ticker, date range, model, horizon, and refresh selections |
 | `ui.overview` | Presentation | Dashboard view | Displays the latest quote, daily movement, and observation freshness |
 | `ui.raw_data` | Presentation | Dashboard view | Displays OHLCV history, quality information, cleaning controls, and CSV download |
 | `ui.time_series_ml` | Presentation | Dashboard view | Charts history and starts classical ML and baseline comparisons |
 | `ui.neural_networks` | Presentation | Dashboard view | Prepares sequences, trains LSTM or GRU, and displays evaluation charts |
 | `ui.performance` | Presentation | Dashboard view | Compares model metrics and optionally runs walk-forward validation |
-| `ui.ai_forecast` | Presentation | Dashboard view | Generates a selected-horizon estimate and shows holdout performance |
-| `data.fetch` | Analysis | Data integration module | Retrieves quotes, daily OHLCV data, and records ticker fetch failures |
+| `ui.ai_forecast` | Presentation | Dashboard view | Generates a selected-horizon estimate and shows holdout performance; persists/reuses models |
+| `ui.portfolio` | Presentation | Dashboard view | Multi-ticker correlation, normalized performance, risk summary, and fundamentals |
+| `data.fetch` | Analysis | Data integration module | Retrieves quotes, daily OHLCV data, fundamentals, and records ticker fetch failures |
 | `data.preprocess` | Analysis | Data preparation module | Sorts and cleans price observations, handles missing values, and reports quality |
-| `data.features` | Analysis | Feature engineering module | Builds technical and lagged features and shifted supervised targets |
+| `data.features` | Analysis | Feature engineering module | Builds technical and lagged features, shifted supervised targets, and session-state cache |
 | `models.train_eval` | Analysis | Training and evaluation module | Performs chronological splits, model comparisons, metrics, and walk-forward validation |
+| `models.backtest` | Analysis | Backtesting engine | Simulates signals with transaction costs, slippage, position sizing, and stop-loss |
+| `models.persistence` | Analysis | Model persistence | Saves and loads fitted models via joblib into `artifacts/models/` |
 | `models.baselines` | Analysis | Estimators | Provides last-close, last-return, and moving-average reference models |
-| `models.ml_models` | Analysis | Model factory | Builds scikit-learn, XGBoost, and LightGBM regressors |
+| `models.ml_models` | Analysis | Model factory | Builds scikit-learn, XGBoost, LightGBM, and Prophet regressors |
 | `models.dl_models` | Analysis | Deep-learning module | Builds and trains LSTM and GRU sequence models |
-| `utils.metrics` | Analysis | Metric helpers | Calculates MAE, RMSE, and directional accuracy |
-| `nlp.news_fetch` | Supporting | News helper | Retrieves and deduplicates ticker headlines; not wired into the current dashboard |
-| `nlp.sentiment` | Supporting | Sentiment helper | Scores headlines with VADER or optional FinBERT; not wired into the current dashboard |
-| `config.py` | Supporting | Configuration module | Defines project metadata, ticker universe, refresh choices, feature windows, and model options |
+| `utils.metrics` | Analysis | Metric helpers | Calculates MAE, RMSE, directional accuracy, Sharpe ratio, max drawdown, and VaR |
+| `config.py` | Supporting | Configuration module | Defines project metadata, ticker universe, refresh choices, feature windows, model options, and risk parameters |
 
 <div align="center">
 

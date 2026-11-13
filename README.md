@@ -64,7 +64,7 @@ This is not a story where the model knows the ending. It is a place to ask bette
 | How do neural networks and model scores compare? | **Neural Networks** · **Performance Metrics** |
 | What does the selected model estimate over the selected horizon? | **AI Forecast** |
 
-<h2 align="center" id="what-you-can-explore">◈ Six stops along the investigation</h2>
+<h2 align="center" id="what-you-can-explore">◈ Seven stops along the investigation</h2>
 
 The sidebar is your field notebook: choose a region, pick a ticker, set a date range, and select a model. From there, each tab reveals another part of the investigation.
 
@@ -72,10 +72,11 @@ The sidebar is your field notebook: choose a region, pick a ticker, set a date r
 |---|---|---|
 | **01 · Overview** | Latest available price, daily change, volume, day range, exchange, region, and data age | Yahoo Finance quote/history |
 | **02 · Raw Data** | Daily OHLCV history, missing-data summary, cleaning options, and a downloadable CSV | Forward-fill, drop, or leave missing values unchanged |
-| **03 · Time Series + ML** | Candlestick chart, feature preview, model comparison, and MAE chart | Naive baselines, Random Forest, Extra Trees, HistGradientBoosting, XGBoost, LightGBM |
+| **03 · Time Series + ML** | Candlestick chart, feature preview, model comparison, and MAE chart | Naive baselines, Random Forest, Extra Trees, HistGradientBoosting, XGBoost, LightGBM, Prophet |
 | **04 · Neural Networks** | Train/test metrics, loss curves, and predicted-versus-actual returns | LSTM or GRU |
 | **05 · Performance Metrics** | Model ranking, MAE and directional-accuracy charts, optional walk-forward scores | Chronological holdout; optional expanding-window validation |
-| **06 · AI Forecast** | Holdout metrics, an illustrative horizon return and price, and test-set comparison | Selected baseline or classical ML model |
+| **06 · AI Forecast** | Holdout metrics, an illustrative horizon return and price, and test-set comparison | Selected baseline or classical ML model; persisted and reused via `artifacts/models/` |
+| **07 · Portfolio** | Multi-ticker correlation matrix, normalized equal-weight performance, risk summary, and fundamentals | Correlation, Sharpe ratio, max drawdown, VaR, yfinance fundamentals |
 
 <p>
 <img alt="Price data" src="https://img.shields.io/badge/01%20%E2%80%94%20Data-173B5E?style=flat-square">
@@ -131,10 +132,10 @@ flowchart LR
 | Family | Available choices | Purpose |
 |---|---|---|
 | **The baseline** | `NaiveLastClose`, `NaiveLastReturn` | Zero-return and most-recent-observed-return references for the selected horizon |
-| **The tree models** | `RandomForest`, `ExtraTrees`, `HistGradientBoosting`, `XGBoost`, `LightGBM` | Several ways of learning patterns from engineered features |
+| **The tree models** | `RandomForest`, `ExtraTrees`, `HistGradientBoosting`, `XGBoost`, `LightGBM`, `Prophet` | Several ways of learning patterns from engineered features |
 | **The sequence models** | `LSTM`, `GRU` | Neural-network experiments that read ordered sequences |
 
-The scorecard reports mean absolute error (**MAE**), root mean squared error (**RMSE**), and **directional accuracy** (how often the predicted direction matches a non-zero actual return). One score is never the whole story.
+The scorecard reports mean absolute error (**MAE**), root mean squared error (**RMSE**), and **directional accuracy** (how often the predicted direction matches a non-zero actual return). The Portfolio screen adds **Sharpe ratio, maximum drawdown, and value-at-risk** for an equal-weight multi-ticker view. One score is never the whole story.
 
 ### 🧭 What the model gets to see
 
@@ -207,7 +208,7 @@ Tests that fetch live quotes or ticker history depend on network access and Yaho
 
 ```text
 Stock_Market_Analysis/
-├── app.py                  # Streamlit entry point and six dashboard tabs
+├── app.py                  # Streamlit entry point and seven dashboard tabs
 ├── config.py               # Project settings, ticker universe, model choices
 ├── requirements.txt        # Python dependencies
 ├── ARCHITECTURE.md         # Application architecture and component relationships
@@ -219,16 +220,26 @@ Stock_Market_Analysis/
 │   ├── architecture-banner.svg
 │   └── limitations-banner.svg
 ├── data/
-│   ├── fetch.py            # Yahoo Finance quotes and OHLCV
+│   ├── fetch.py            # Yahoo Finance quotes, OHLCV, fundamentals
 │   ├── preprocess.py       # Cleaning and quality checks
-│   └── features.py         # Technical features and supervised targets
+│   └── features.py         # Technical features, supervised targets, and session-state cache
 ├── models/
 │   ├── baselines.py        # Simple reference models
-│   ├── ml_models.py        # Classical ML model factory
+│   ├── ml_models.py        # Classical ML model factory (incl. Prophet)
 │   ├── dl_models.py        # LSTM / GRU sequence models
-│   └── train_eval.py       # Splitting, training, metrics, validation
-├── ui/                     # Sidebar and the six Streamlit tab views
-├── utils/                  # Plotting, helper functions, and metrics
+│   ├── train_eval.py       # Splitting, training, metrics, validation
+│   ├── backtest.py         # Backtesting engine (costs, slippage, stop-loss)
+│   └── persistence.py      # Model save/load via joblib
+├── ui/                     # Sidebar and the seven Streamlit tab views
+│   ├── sidebar.py
+│   ├── overview.py
+│   ├── raw_data.py
+│   ├── time_series_ml.py
+│   ├── neural_networks.py
+│   ├── performance.py
+│   ├── ai_forecast.py
+│   └── portfolio.py        # Multi-ticker portfolio view
+├── utils/                  # Plotting, helper functions, and metrics (incl. risk metrics)
 ├── tests/                  # Data, feature, and metric tests
 └── notebooks/
     └── experiments.ipynb   # Experimental analysis notebook
@@ -290,9 +301,12 @@ Every investigation has boundaries. Keep these notes nearby as you read the char
 - **History and interval:** the dashboard requests daily OHLCV history. The data-fetching helper accepts other intervals, but intraday analysis is not the workflow displayed by the current UI.
 - **Forecast target:** engineered targets use the cumulative close-to-close return for the selected 1-, 3-, or 5-trading-day horizon. This is an experiment, not a price guarantee.
 - **Validation:** comparison screens use an ordered train/test split; optional walk-forward validation is available for selected classical ML models. Neither guarantees future performance.
-- **Model choice:** XGBoost and LightGBM are listed in the requirements, but the ML module treats them as optional imports; availability depends on successful installation.
+- **Model choice:** XGBoost and LightGBM are listed in the requirements, but the ML module treats them as optional imports; availability depends on successful installation. Prophet is likewise optional.
 - **Forecast horizon:** choosing 3 or 5 days does not currently roll a one-step model forward for a corresponding multi-step forecast.
 - **News sentiment:** sentiment helpers exist in `nlp/`, but the News & Sentiment tab and its sidebar controls are currently removed from the dashboard.
+- **Persistence:** trained classical ML models are saved to `artifacts/models/` and reused across sessions; persistence does not imply versioning, lineage, or production model governance.
+- **Backtesting:** the backtest engine applies transaction costs, slippage, and an optional stop-loss to historical signals, but it is a historical simulation, not live paper trading or a profitability guarantee.
+- **Portfolio:** the Portfolio view uses equal-weight aggregation and yfinance fundamentals; it is not a portfolio-optimization or risk-management system.
 - **No investment guidance:** forecasts may be inaccurate, stale, or misleading. Do your own research and consult a qualified professional where appropriate.
 
 <div align="center">

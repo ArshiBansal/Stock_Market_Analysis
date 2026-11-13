@@ -78,15 +78,19 @@ For sequence models, the test sequences are formed from the test partition itsel
 
 ## 05 · Compare model families
 
-Experiments can compare simple references, classical regressors, and sequence models on return targets:
+Experiments can compare simple references, classical regressors, Prophet, and sequence models on return targets:
 
 | Family | Available models | What the comparison tells you |
 |---|---|---|
 | Baseline | `NaiveLastClose`, `NaiveLastReturn` | How a simple reference performs on the same split |
-| Classical machine learning | `RandomForest`, `ExtraTrees`, `HistGradientBoosting`, `XGBoost`, `LightGBM` | How tree-based regressors fit the engineered features |
+| Classical machine learning | `RandomForest`, `ExtraTrees`, `HistGradientBoosting`, `XGBoost`, `LightGBM`, `Prophet` | How tree-based and structural regressors fit the engineered features |
 | Deep learning | `LSTM`, `GRU` | How sequence models perform on ordered feature windows |
 
-`XGBoost` and `LightGBM` are imported optionally in the model module. If an optional library cannot be imported, a run that selects that estimator can report an error rather than produce a score.
+`XGBoost`, `LightGBM`, and `Prophet` are imported optionally in the model module. If an optional library cannot be imported, a run that selects that estimator can report an error rather than produce a score.
+
+### Prophet
+
+Prophet is wrapped as an scikit-learn-style regressor (`_ProphetWrapper`) in `models.ml_models`. It receives the feature frame and the close-price target, fits an additive trend/seasonality model on the date index, and predicts the horizon return at each feature row. Like the other models, it is evaluated on the chronological holdout and is not a recursively generated price path.
 
 ## 06 · Read the scorecard carefully
 
@@ -95,6 +99,14 @@ Experiments can compare simple references, classical regressors, and sequence mo
 | **MAE** | Mean absolute difference between predicted and actual target returns | Lower |
 | **RMSE** | Square root of mean squared prediction error; larger errors receive more weight | Lower |
 | **Directional accuracy** | Percentage of non-zero actual returns for which predicted and actual signs match | Higher |
+
+### Risk metrics (Portfolio and backtest screens)
+
+| Metric | Interpretation | Direction to prefer |
+|---|---|---|
+| **Sharpe ratio** | Mean excess return per unit of return volatility, annualized | Higher |
+| **Maximum drawdown** | Largest peak-to-trough decline in cumulative equity | Lower (less negative) |
+| **Value at Risk (VaR)** | Historical percentile loss at the configured confidence level | Lower (less negative) |
 
 The app also plots predicted and actual returns and, where available, model training and validation curves. Metrics depend on the chosen ticker, observation window, split, features, estimator settings, and upstream data. A model ranking on one historical holdout does not establish that it will outperform on future observations.
 
@@ -116,6 +128,40 @@ The sidebar exposes 1-, 3-, and 5-day horizon choices, but the AI Forecast imple
 
 Selecting LSTM or GRU in the shared model control does not train a neural network inside the AI Forecast screen; neural-network experiments are handled in the separate Neural Networks tab. In the forecast screen, other unsupported selections fall back to XGBoost, which must be installed.
 
+### Model persistence
+
+The AI Forecast screen can persist fitted classical ML models to `artifacts/models/` using joblib (`models.persistence`). On a subsequent forecast run for the same ticker and model, the persisted artifact is loaded instead of retraining. Persistence is a convenience cache: it does not provide model versioning, lineage, or production governance, and a retrain is triggered when the artifact is absent.
+
+### Session-state caching
+
+To avoid re-fetching and re-engineering data when the user switches tabs, `data.features` exposes `get_cached_supervised_dataset()`. The fetch-clean-feature pipeline result is stored in Streamlit session state keyed by (ticker, horizon, date window), so the same supervised dataset is reused across the Time Series + ML, Performance Metrics, and AI Forecast screens within a session.
+
+## 07b · Backtesting engine
+
+The backtest engine (`models.backtest`) simulates executing a directional signal series on historical prices. It supports:
+
+- **Position sizing:** a configurable fraction of capital is deployed per trade.
+- **Transaction costs and slippage:** basis-point costs are applied on each trade side.
+- **Stop-loss:** an optional per-trade stop-loss exits the position when the drawdown threshold is breached.
+- **Mark-to-market equity:** equity is marked to market each observation, producing an equity curve and per-period returns.
+
+Outputs include total return, trade count, win rate, Sharpe ratio, maximum drawdown, and value at risk. This is a historical simulation of signals, not live paper trading or a profitability guarantee.
+
+## 07c · Portfolio view
+
+The Portfolio tab (`ui.portfolio`) is a multi-ticker screen. It fetches and cleans history for each selected ticker, aligns closes on common dates, and displays:
+
+- A correlation matrix of ticker returns.
+- Normalized equal-weight performance (each series starts at 1).
+- An equal-weight portfolio summary: mean return, Sharpe ratio, maximum drawdown, and VaR.
+- Per-ticker fundamentals from `yfinance` (market cap, P/E, dividend yield, beta, 52-week high/low).
+
+It is an exploratory comparison view, not a portfolio optimizer or risk-management system.
+
+## 07d · Fundamental data
+
+`data.fetch` provides `fetch_fundamentals()` and `fetch_multi_fundamentals()`, which read company information through `yfinance.Ticker.info`. Returned fields include name, sector, industry, market cap, trailing and forward P/E, price-to-book, dividend yield, EPS, revenue, profit margin, beta, and 52-week high/low. Fundamentals are displayed in the Portfolio screen and are not features in the return-forecast models.
+
 ## 08 · News and sentiment are a separate experiment
 
 The repository includes helpers to retrieve ticker headlines through `yfinance` and analyze headline text with VADER or FinBERT. These modules are **not connected to the current six-tab dashboard** and are not inputs to its displayed return forecasts. FinBERT may download pretrained files on first use and requires compatible `transformers` and PyTorch installations.
@@ -136,7 +182,8 @@ For a reproducible comparison, record the ticker, date range, data retrieval tim
 - Third-party quote and news data can be delayed, incomplete, revised, or unavailable.
 - A chronological holdout and walk-forward scores provide historical evidence, not a performance guarantee.
 - Directional accuracy can be close to chance, and aggregate metrics can hide periods of failure.
-- The project does not include fees, slippage, portfolio construction, position sizing, or a full trading simulation.
+- The backtest engine applies costs, slippage, and an optional stop-loss to historical signals, but it is a historical simulation, not live paper trading or a profitability guarantee.
+- The Portfolio view is equal-weight and exploratory, not a portfolio optimizer or risk-management system.
 - Outputs are educational and experimental; they are not financial, investment, or trading advice.
 
 <div align="center">

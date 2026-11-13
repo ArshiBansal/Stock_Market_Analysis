@@ -80,7 +80,15 @@ The repository includes VADER and FinBERT news-analysis helpers, but the News & 
 
 ### Model availability and compute
 
-XGBoost and LightGBM are treated as optional imports in the model factory; an unavailable library prevents that estimator from running. LSTM and GRU require a compatible TensorFlow installation and sufficient sequence data. FinBERT requires compatible Transformers/PyTorch dependencies and may download model files on first use.
+XGBoost, LightGBM, and Prophet are treated as optional imports in the model factory; an unavailable library prevents that estimator from running. LSTM and GRU require a compatible TensorFlow installation and sufficient sequence data.
+
+### Model persistence
+
+Trained classical ML models may be serialized to `artifacts/models/` via joblib and reused across sessions. Persistence is a convenience cache: it does not provide model versioning, lineage, drift monitoring, or production governance. A stored model reflects the data and hyperparameters at the time it was trained; retrain when the observation window or settings change.
+
+### Session-state caching
+
+Engineered feature/target datasets are cached in Streamlit session state per (ticker, horizon, date window) to avoid re-fetching across tab switches. Cached data reflects the fetch time and upstream response at cache creation; it is not refreshed automatically within a session and does not persist across browser restarts.
 
 The model settings are experiment defaults, not a hyperparameter search. Scores depend on data, preprocessing, model settings, installed package versions, and random variation. Dependency declarations specify minimum versions rather than a lockfile.
 
@@ -101,8 +109,11 @@ The LSTM/GRU screen fits a standard scaler to training features and reserves a v
 | **MAE** | Mean absolute prediction error | Whether the model is profitable after execution costs |
 | **RMSE** | Error with additional weight on larger misses | Whether errors are acceptable for a particular risk tolerance |
 | **Directional accuracy** | Sign matches for non-zero actual returns | The size, timing, or economic value of a move |
+| **Sharpe ratio** | Mean excess return per unit of volatility, annualized | Whether the return stream is tradable or robust to regime change |
+| **Maximum drawdown** | Largest peak-to-trough decline in cumulative equity | The path of losses or recovery time |
+| **Value at Risk** | Historical percentile loss at the configured confidence level | Tail risk beyond the percentile or expected shortfall |
 
-Directional accuracy ignores zero actual returns. The dashboard does not calculate trading returns, confidence intervals, calibrated uncertainty, drawdown, risk-adjusted performance, or prediction intervals. A chart or score is **not a confidence estimate**.
+Directional accuracy ignores zero actual returns. The dashboard does not calculate trading returns, confidence intervals, calibrated uncertainty, or prediction intervals. A chart or score is **not a confidence estimate**.
 
 <h2 align="center" id="4--what-the-forecast-screen-does-not-forecast">04 · What the forecast screen does not forecast</h2>
 
@@ -126,10 +137,10 @@ The AI Forecast screen supports the listed baseline and classical ML branches. S
 
 The current analysis does not account for:
 
-- Brokerage fees, bid–ask spread, slippage, liquidity, taxes, or execution timing.
-- Portfolio weights, diversification, leverage, position sizing, or risk controls.
-- Fundamentals, company events, macroeconomic announcements, or a functioning news-sentiment feature pipeline.
-- Regime-change detection, stress scenarios, or guarantees that historical patterns persist.
+- Real-time execution: brokerage fees, bid–ask spread, slippage, liquidity, taxes, and timing are only approximated in the backtest engine, not applied to live forecasts.
+- Portfolio weights, diversification, leverage, and risk controls beyond the Portfolio screen's equal-weight aggregation.
+- Fundamentals are displayed in the Portfolio screen but are **not features** in the return-forecast models.
+- Macro events, regime-change detection, stress scenarios, or guarantees that historical patterns persist.
 - A production monitoring, alerting, authentication, or multi-user data-isolation design.
 
 The app is a local educational dashboard, not a hardened portfolio or financial-services platform. Treat deployment and access controls as separate engineering work before exposing it beyond a trusted local environment.
