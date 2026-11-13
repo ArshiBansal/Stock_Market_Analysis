@@ -150,7 +150,6 @@ def fetch_ohlcv(
 def fetch_latest_quote(ticker: str) -> Dict:
     """
     Fetch the most recent available quote information for a single ticker.
-    Fixed: handles timezone-aware vs timezone-naive datetime subtraction.
     """
     try:
         t = yf.Ticker(ticker)
@@ -172,7 +171,7 @@ def fetch_latest_quote(ticker: str) -> Dict:
         change = price - prev_close
         change_pct = (change / prev_close * 100) if prev_close else 0.0
 
-        # ---------- Fixed timestamp handling ----------
+        # ---------- Timestamp handling ----------
         last_ts = hist.index[-1]
 
         # Convert to timezone-naive UTC
@@ -189,7 +188,7 @@ def fetch_latest_quote(ticker: str) -> Dict:
         if getattr(last_ts, "tzinfo", None) is not None:
             last_ts = last_ts.replace(tzinfo=None)
 
-        now = datetime.utcnow()  # naive UTC
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
         age_hours = (now - last_ts).total_seconds() / 3600 if last_ts else 999.0
         stale = age_hours > 24
 

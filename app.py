@@ -1,8 +1,7 @@
 """
-Zephyr – Intelligent Stock Market Forecasting & News Sentiment Decision Support System
+Zephyr – Intelligent Stock Market Forecasting
 
 Main Streamlit entry point.
-(News & Sentiment tab has been removed)
 """
 
 from __future__ import annotations
@@ -44,7 +43,7 @@ def main() -> None:
     # ---------- Sidebar (shared filters) ----------
     filters = render_sidebar()
 
-    # ---------- Tabs (News tab removed) ----------
+    # ---------- Tabs ----------
     tabs = st.tabs(TAB_NAMES)
 
     with tabs[0]:

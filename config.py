@@ -1,6 +1,6 @@
 """
 Zephyr – Global configuration
-Intelligent Stock Market Forecasting & News Sentiment Decision Support System
+Intelligent Stock Market Forecasting
 """
 
 from pathlib import Path
@@ -15,7 +15,7 @@ ARTIFACTS_DIR.mkdir(exist_ok=True)
 
 # Project metadata
 PROJECT_NAME = "Zephyr"
-PROJECT_TITLE = "Zephyr — Intelligent Stock Market Forecasting & News Sentiment Decision Support System"
+PROJECT_TITLE = "Zephyr — Intelligent Stock Market Forecasting"
 VERSION = "1.0.0"
 DISCLAIMER = (
     "Educational project only. Not financial advice. "
@@ -120,7 +120,6 @@ PAGE_TITLE = PROJECT_TITLE
 PAGE_ICON = "📈"
 LAYOUT = "wide"
 
-# News tab has been removed
 TAB_NAMES = [
     "1. Overview",
     "2. Raw Data",

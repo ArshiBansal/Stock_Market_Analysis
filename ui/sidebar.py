@@ -1,6 +1,5 @@
 """
 Zephyr – Shared sidebar filters
-(News & Sentiment controls have been removed)
 """
 
 from __future__ import annotations
