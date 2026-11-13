@@ -242,3 +242,46 @@ def fetch_multi_latest_quotes(
             ticker = futures[future]
             results[ticker] = future.result()
     return results
+
+
+def fetch_fundamentals(ticker: str) -> Dict:
+    """Fetch fundamental/company info for a single ticker via yfinance."""
+    try:
+        t = yf.Ticker(ticker)
+        info = t.info or {}
+        return {
+            "ticker": ticker,
+            "name": info.get("shortName") or info.get("longName") or ticker,
+            "sector": info.get("sector", "N/A"),
+            "industry": info.get("industry", "N/A"),
+            "market_cap": info.get("marketCap"),
+            "pe_ratio": info.get("trailingPE"),
+            "forward_pe": info.get("forwardPE"),
+            "price_to_book": info.get("priceToBook"),
+            "dividend_yield": info.get("dividendYield"),
+            "eps": info.get("trailingEps"),
+            "revenue": info.get("totalRevenue"),
+            "profit_margin": info.get("profitMargins"),
+            "beta": info.get("beta"),
+            "52w_high": info.get("fiftyTwoWeekHigh"),
+            "52w_low": info.get("fiftyTwoWeekLow"),
+            "currency": info.get("currency", "N/A"),
+            "exchange": info.get("exchange", "N/A"),
+        }
+    except Exception as e:
+        logger.error(f"Fundamentals failed for {ticker}: {e}")
+        return {"ticker": ticker, "error": str(e)}
+
+
+def fetch_multi_fundamentals(
+    tickers: List[str],
+    max_workers: int = 6,
+) -> Dict[str, Dict]:
+    """Fetch fundamentals for multiple tickers concurrently."""
+    results = {}
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = {executor.submit(fetch_fundamentals, t): t for t in tickers}
+        for future in as_completed(futures):
+            ticker = futures[future]
+            results[ticker] = future.result()
+    return results

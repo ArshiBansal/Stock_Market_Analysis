@@ -178,3 +178,38 @@ def create_supervised_dataset(
         y = y.loc[mask]
 
     return X, y
+
+
+# ----------------------------------------------------------------------
+# Session-state cached supervised dataset (avoids recompute across tabs)
+# ----------------------------------------------------------------------
+def get_cached_supervised_dataset(
+    ticker: str,
+    horizon: int = 1,
+    start: Optional[str] = None,
+    end: Optional[str] = None,
+    period: str = "2y",
+) -> Optional[tuple]:
+    """
+    Return (X, y, df) for a ticker, cached in st.session_state so the
+    expensive fetch+feature pipeline runs once per (ticker, horizon, window).
+    """
+    import streamlit as st
+
+    from data.fetch import fetch_ohlcv
+    from data.preprocess import clean_ohlcv, handle_missing_values
+
+    key = f"supervised_{ticker}_{horizon}_{start}_{end}_{period}"
+    if key not in st.session_state:
+        raw = fetch_ohlcv(tickers=ticker, start=start, end=end, period=period)
+        if ticker not in raw or raw[ticker].empty:
+            st.session_state[key] = None
+        else:
+            df = clean_ohlcv(raw[ticker])
+            df = handle_missing_values(df, method="ffill")
+            df = add_technical_features(df, dropna=True)
+            X, y = create_supervised_dataset(
+                df, target_col="target_return_1d", horizon=horizon
+            )
+            st.session_state[key] = (X, y, df)
+    return st.session_state.get(key)

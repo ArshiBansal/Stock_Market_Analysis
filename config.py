@@ -9,11 +9,13 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).parent
 DATA_DIR = ROOT_DIR / "data"
 ARTIFACTS_DIR = ROOT_DIR / "artifacts"
+MODEL_ARTIFACTS_DIR = ARTIFACTS_DIR / "models"
 NOTEBOOKS_DIR = ROOT_DIR / "notebooks"
 
 def ensure_directories() -> None:
     """Create required project directories (idempotent)."""
     ARTIFACTS_DIR.mkdir(exist_ok=True)
+    MODEL_ARTIFACTS_DIR.mkdir(exist_ok=True)
 
 
 # Project metadata
@@ -87,12 +89,18 @@ HORIZON_OPTIONS = [1, 3, 5]
 
 TARGET_TYPE = "close"
 
+# Risk metrics
+RISK_FREE_RATE = 0.02
+TRADING_DAYS = 252
+CONFIDENCE_LEVEL = 0.95
+
 ML_MODELS = [
     "RandomForest",
     "ExtraTrees",
     "XGBoost",
     "LightGBM",
     "HistGradientBoosting",
+    "Prophet",
 ]
 
 DL_MODELS = [
@@ -130,6 +138,7 @@ TAB_NAMES = [
     "4. Neural Networks",
     "5. Performance Metrics",
     "6. AI Forecast",
+    "7. Portfolio",
 ]
 
 # Random seed

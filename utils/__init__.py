@@ -8,6 +8,9 @@ from .metrics import (
     rmse,
     directional_accuracy,
     evaluate_forecast,
+    sharpe_ratio,
+    max_drawdown,
+    value_at_risk,
 )
 from .plotting import (
     plot_candlestick,
@@ -28,6 +31,9 @@ __all__ = [
     "rmse",
     "directional_accuracy",
     "evaluate_forecast",
+    "sharpe_ratio",
+    "max_drawdown",
+    "value_at_risk",
     # Plotting
     "plot_candlestick",
     "plot_forecast_vs_actual",

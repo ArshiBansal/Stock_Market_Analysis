@@ -30,6 +30,12 @@ try:
 except ImportError:
     _HAS_LGBM = False
 
+try:
+    from prophet import Prophet as _Prophet
+    _HAS_PROPHET = True
+except ImportError:
+    _HAS_PROPHET = False
+
 
 def _make_rf(**kwargs) -> RandomForestRegressor:
     defaults = dict(
@@ -100,12 +106,50 @@ def _make_lgbm(**kwargs):
     return LGBMRegressor(**defaults)
 
 
+class _ProphetWrapper:
+    """sklearn-like wrapper around Prophet for close-price forecasting."""
+
+    def __init__(self, **kwargs):
+        if not _HAS_PROPHET:
+            raise ImportError("prophet is not installed")
+        self.model = _Prophet(**kwargs)
+        self._fit_df = None
+
+    def fit(self, X, y=None):
+        df = X.copy()
+        df["ds"] = df.index
+        df["y"] = df["Close"] if "Close" in df.columns else y
+        self.model.fit(df)
+        self._fit_df = df
+        return self
+
+    def predict(self, X):
+        df = X.copy()
+        df["ds"] = df.index
+        forecast = self.model.predict(df)
+        return forecast["yhat"].to_numpy()
+
+
+def _make_prophet(**kwargs):
+    if not _HAS_PROPHET:
+        raise ImportError("prophet is not installed")
+    defaults = dict(
+        yearly_seasonality=True,
+        weekly_seasonality=True,
+        daily_seasonality=False,
+        changepoint_prior_scale=0.05,
+    )
+    defaults.update(kwargs)
+    return _ProphetWrapper(**defaults)
+
+
 ML_MODEL_MAP = {
     "RandomForest": _make_rf,
     "ExtraTrees": _make_et,
     "HistGradientBoosting": _make_hgb,
     "XGBoost": _make_xgb,
     "LightGBM": _make_lgbm,
+    "Prophet": _make_prophet,
 }
 
 

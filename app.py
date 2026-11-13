@@ -36,6 +36,28 @@ from ui.time_series_ml import render_time_series_ml
 from ui.neural_networks import render_neural_networks
 from ui.performance import render_performance
 from ui.ai_forecast import render_ai_forecast
+from ui.portfolio import render_portfolio
+
+from data.fetch import fetch_ohlcv
+from data.preprocess import clean_ohlcv, handle_missing_values
+from data.features import add_technical_features, create_supervised_dataset
+
+
+# Main application
+def get_cached_supervised(ticker: str, horizon: int, start: str, end: str):
+    """Cache the engineered X/y dataset in session state to avoid recomputation across tabs."""
+    key = f"supervised_{ticker}_{horizon}_{start}_{end}"
+    if key not in st.session_state:
+        raw = fetch_ohlcv(tickers=ticker, start=start, end=end, period="2y")
+        if ticker not in raw or raw[ticker].empty:
+            st.session_state[key] = None
+        else:
+            df = clean_ohlcv(raw[ticker])
+            df = handle_missing_values(df, method="ffill")
+            df = add_technical_features(df, dropna=True)
+            X, y = create_supervised_dataset(df, target_col="target_return_1d", horizon=horizon)
+            st.session_state[key] = (X, y, df)
+    return st.session_state.get(key)
 
 
 # Main application
@@ -69,6 +91,9 @@ def main() -> None:
 
     with tabs[5]:
         render_ai_forecast(filters)
+
+    with tabs[6]:
+        render_portfolio(filters)
 
     # ---------- Footer (Centered) ----------
     st.markdown("---")

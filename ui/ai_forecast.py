@@ -13,12 +13,18 @@ import numpy as np
 import plotly.graph_objects as go
 from datetime import datetime
 
-from data.fetch import fetch_ohlcv, fetch_latest_quote
+from data.fetch import fetch_ohlcv, fetch_latest_quote, fetch_fundamentals
 from data.preprocess import clean_ohlcv, handle_missing_values
-from data.features import add_technical_features, create_supervised_dataset, get_feature_columns
+from data.features import (
+    add_technical_features,
+    create_supervised_dataset,
+    get_feature_columns,
+    get_cached_supervised_dataset,
+)
 from models.ml_models import get_ml_model, ML_MODEL_MAP
 from models.baselines import NaiveLastClose, NaiveLastReturn
 from models.train_eval import chronological_split, evaluate_regression
+from models.persistence import save_model, load_model, model_exists
 from config import DISCLAIMER, ML_MODELS, BASELINE_MODELS
 
 
@@ -78,7 +84,13 @@ def render_ai_forecast(filters: Dict[str, Any]) -> None:
         st.error("No usable data after feature engineering.")
         return
 
-    X, y = create_supervised_dataset(df, target_col="target_return_1d", horizon=horizon)
+    cached = get_cached_supervised_dataset(
+        ticker, horizon=horizon, start=str(start_date), end=str(end_date)
+    )
+    if cached is not None:
+        X, y, _ = cached
+    else:
+        X, y = create_supervised_dataset(df, target_col="target_return_1d", horizon=horizon)
     X_train, X_test, y_train, y_test = chronological_split(
         X, y, test_size=0.2, gap=horizon
     )
@@ -100,8 +112,13 @@ def render_ai_forecast(filters: Dict[str, Any]) -> None:
                     point_forecast_return = float(model.predict(latest_features)[0])
 
                 elif selected_model in ML_MODEL_MAP:
-                    model = get_ml_model(selected_model, scale=True)
-                    model.fit(X_train, y_train)
+                    model_path_key = f"{ticker}_{selected_model}"
+                    if model_exists(selected_model, ticker):
+                        model = load_model(selected_model, ticker)
+                    else:
+                        model = get_ml_model(selected_model, scale=True)
+                        model.fit(X_train, y_train)
+                        save_model(model, selected_model, ticker)
                     test_preds = model.predict(X_test)
                     point_forecast_return = float(model.predict(latest_features)[0])
 
@@ -110,8 +127,13 @@ def render_ai_forecast(filters: Dict[str, Any]) -> None:
                         f"Deep-learning model **{selected_model}** is best explored in the "
                         "Neural Networks tab. Falling back to XGBoost for this view."
                     )
-                    model = get_ml_model("XGBoost", scale=True)
-                    model.fit(X_train, y_train)
+                    model_path_key = "ticker_XGBoost"
+                    if model_exists("XGBoost", ticker):
+                        model = load_model("XGBoost", ticker)
+                    else:
+                        model = get_ml_model("XGBoost", scale=True)
+                        model.fit(X_train, y_train)
+                        save_model(model, "XGBoost", ticker)
                     test_preds = model.predict(X_test)
                     point_forecast_return = float(model.predict(latest_features)[0])
 
