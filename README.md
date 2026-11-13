@@ -182,7 +182,7 @@ If PowerShell prevents environment activation, run the environment's Python dire
 python -m pip install -r requirements.txt
 ```
 
-The requirements include deep-learning and NLP libraries, so setup can be substantial. TensorFlow powers the LSTM/GRU screen; PyTorch is included for the sentiment/transformers modules.
+The requirements include deep-learning and NLP libraries, so setup can be substantial. TensorFlow powers the LSTM/GRU screen.
 
 ### 3 · Start the dashboard
 
@@ -228,7 +228,6 @@ Stock_Market_Analysis/
 │   ├── dl_models.py        # LSTM / GRU sequence models
 │   └── train_eval.py       # Splitting, training, metrics, validation
 ├── ui/                     # Sidebar and the six Streamlit tab views
-├── nlp/                    # News retrieval and sentiment helpers
 ├── utils/                  # Plotting, helper functions, and metrics
 ├── tests/                  # Data, feature, and metric tests
 └── notebooks/
@@ -304,9 +303,9 @@ Every investigation has boundaries. Keep these notes nearby as you read the char
 
 </div>
 
-<h2 align="center" id="news-and-sentiment-modules">◌ A side room: news and sentiment</h2>
+<h2 align="center" id="news-and-sentiment-modules">◌ News and sentiment</h2>
 
-The repository includes helpers for retrieving ticker news from Yahoo Finance and analyzing headlines with **VADER** or **FinBERT**. These modules are supporting code, **not an active dashboard tab**. FinBERT may download its pretrained model on first use; availability depends on network access and the installed `transformers` / PyTorch environment.
+News retrieval and sentiment analysis are **not part of the current dashboard**. The News & Sentiment tab and its controls have been removed from the app; forecasts are based purely on market data.
 
 <h2 align="center" id="license">▣ License</h2>
 
