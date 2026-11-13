@@ -12,7 +12,6 @@ from .metrics import (
 from .plotting import (
     plot_candlestick,
     plot_forecast_vs_actual,
-    plot_sentiment_distribution,
     plot_training_curves,
 )
 from .helpers import (
@@ -32,7 +31,6 @@ __all__ = [
     # Plotting
     "plot_candlestick",
     "plot_forecast_vs_actual",
-    "plot_sentiment_distribution",
     "plot_training_curves",
     # Helpers
     "format_timestamp",

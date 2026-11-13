@@ -85,38 +85,6 @@ def plot_forecast_vs_actual(
     return fig
 
 
-def plot_sentiment_distribution(
-    agg: Dict[str, Dict[str, float]],
-    title: str = "Sentiment Distribution",
-    height: int = 320,
-) -> go.Figure:
-    """
-    Horizontal bar or pie-friendly chart from the aggregate_sentiment output.
-    """
-    labels = list(agg.keys())
-    counts = [agg[k]["count"] for k in labels]
-    colors = {"Positive": "#2ecc71", "Neutral": "#95a5a6", "Negative": "#e74c3c"}
-
-    fig = go.Figure(
-        go.Bar(
-            x=counts,
-            y=labels,
-            orientation="h",
-            marker_color=[colors.get(l, "#3498db") for l in labels],
-            text=counts,
-            textposition="auto",
-        )
-    )
-    fig.update_layout(
-        title=title,
-        xaxis_title="Number of Headlines",
-        height=height,
-        template="plotly_white",
-        margin=dict(l=80, r=40, t=50, b=40),
-    )
-    return fig
-
-
 def plot_training_curves(
     history: Dict[str, list],
     height: int = 380,

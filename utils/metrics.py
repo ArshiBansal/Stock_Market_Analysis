@@ -19,7 +19,7 @@ def mae(y_true: Union[np.ndarray, pd.Series], y_pred: Union[np.ndarray, pd.Serie
 
 def rmse(y_true: Union[np.ndarray, pd.Series], y_pred: Union[np.ndarray, pd.Series]) -> float:
     """Root Mean Squared Error."""
-    return float(mean_squared_error(y_true, y_pred, squared=False))
+    return float(np.sqrt(mean_squared_error(y_true, y_pred)))
 
 
 def directional_accuracy(
