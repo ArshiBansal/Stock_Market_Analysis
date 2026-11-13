@@ -15,7 +15,7 @@ from plotly.subplots import make_subplots
 from data.fetch import fetch_ohlcv
 from data.preprocess import clean_ohlcv, handle_missing_values
 from data.features import add_technical_features, create_supervised_dataset, get_feature_columns
-from models.train_eval import run_model_comparison, chronological_split
+from models.train_eval import run_model_comparison
 from models.ml_models import ML_MODEL_MAP
 from config import ML_MODELS, BASELINE_MODELS, DISCLAIMER
 

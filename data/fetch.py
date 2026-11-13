@@ -7,6 +7,7 @@ validating tickers, handling failures and providing latest quotes.
 from __future__ import annotations
 
 import logging
+import streamlit as st
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Tuple
 
@@ -14,9 +15,17 @@ import pandas as pd
 import yfinance as yf
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from config import ALL_TICKERS, DEFAULT_HISTORY_PERIOD, TICKER_TO_REGION
+from config import (
+    ALL_TICKERS,
+    DEFAULT_HISTORY_PERIOD,
+    TICKER_TO_REGION,
+    CACHE_TTL_SECONDS,
+    DEFAULT_REFRESH,
+)
 
 logger = logging.getLogger(__name__)
+
+FETCH_CACHE_TTL = CACHE_TTL_SECONDS[DEFAULT_REFRESH]
 
 # Global registry of tickers that failed during the current session
 _FAILED_TICKERS: Dict[str, str] = {}
@@ -75,6 +84,7 @@ def validate_tickers(
     return valid, failed
 
 
+@st.cache_data(ttl=FETCH_CACHE_TTL, hash_funcs={list: tuple}, show_spinner=False)
 def fetch_ohlcv(
     tickers: List[str] | str,
     period: str = DEFAULT_HISTORY_PERIOD,
@@ -82,7 +92,6 @@ def fetch_ohlcv(
     start: Optional[str] = None,
     end: Optional[str] = None,
     auto_adjust: bool = True,
-    progress: bool = False,
 ) -> Dict[str, pd.DataFrame]:
     """
     Download OHLCV data for one or more tickers.
@@ -147,6 +156,7 @@ def fetch_ohlcv(
     return results
 
 
+@st.cache_data(ttl=FETCH_CACHE_TTL, show_spinner=False)
 def fetch_latest_quote(ticker: str) -> Dict:
     """
     Fetch the most recent available quote information for a single ticker.

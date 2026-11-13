@@ -150,21 +150,25 @@ def render_performance(filters: Dict[str, Any]) -> None:
         # Walk-forward (optional)
         if run_walk_forward:
             st.subheader("Walk-Forward Validation")
-            wf_model = st.selectbox(
-                "Model for walk-forward",
-                options=[m for m in selected_models if m in ML_MODEL_MAP],
-                index=0,
-            )
-            with st.spinner(f"Running walk-forward for {wf_model}..."):
-                wf_result = walk_forward_validation(
-                    X, y, model_name=wf_model, n_splits=5, horizon=horizon
+            wf_options = [m for m in selected_models if m in ML_MODEL_MAP]
+            if not wf_options:
+                st.info("Walk-forward validation is only available for classical ML models.")
+            else:
+                wf_model = st.selectbox(
+                    "Model for walk-forward",
+                    options=wf_options,
+                    index=0,
                 )
+                with st.spinner(f"Running walk-forward for {wf_model}..."):
+                    wf_result = walk_forward_validation(
+                        X, y, model_name=wf_model, n_splits=5, horizon=horizon
+                    )
 
-            st.write("Average metrics across folds:")
-            st.json(wf_result["average"])
+                st.write("Average metrics across folds:")
+                st.json(wf_result["average"])
 
-            fold_df = pd.DataFrame(wf_result["fold_scores"])
-            st.dataframe(fold_df.style.format("{:.4f}"), use_container_width=True)
+                fold_df = pd.DataFrame(wf_result["fold_scores"])
+                st.dataframe(fold_df.style.format("{:.4f}"), use_container_width=True)
 
     st.markdown("---")
     st.caption(DISCLAIMER)

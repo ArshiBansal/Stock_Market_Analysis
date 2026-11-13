@@ -18,13 +18,17 @@ st.set_page_config(
 )
 
 # Project imports
+from dotenv import load_dotenv
 from config import (
     PROJECT_TITLE,
     PROJECT_NAME,
     VERSION,
     DISCLAIMER,
     TAB_NAMES,
+    ensure_directories,
 )
+
+load_dotenv()
 from ui.sidebar import render_sidebar
 from ui.overview import render_overview
 from ui.raw_data import render_raw_data
@@ -36,6 +40,8 @@ from ui.ai_forecast import render_ai_forecast
 
 # Main application
 def main() -> None:
+    ensure_directories()
+
     # ---------- Header ----------
     st.title(f"📈 {PROJECT_NAME}")
     st.caption(f"{PROJECT_TITLE}  |  v{VERSION}")

@@ -9,7 +9,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.preprocessing import StandardScaler
 
@@ -23,48 +22,18 @@ from .dl_models import (
     train_dl_model,
     predict_dl,
 )
+from utils.metrics import directional_accuracy, evaluate_forecast
 
 
 # ----------------------------------------------------------------------
 # Metrics
 # ----------------------------------------------------------------------
-def directional_accuracy(y_true: np.ndarray, y_pred: np.ndarray) -> float:
-    """
-    Percentage of times the predicted direction matches the actual direction.
-    Assumes both are returns (or differences). Zero actuals are ignored.
-    """
-    y_true = np.asarray(y_true).ravel()
-    y_pred = np.asarray(y_pred).ravel()
-
-    mask = y_true != 0
-    if mask.sum() == 0:
-        return 0.0
-
-    correct = np.sign(y_true[mask]) == np.sign(y_pred[mask])
-    return float(np.mean(correct) * 100)
-
-
 def evaluate_regression(
     y_true: np.ndarray,
     y_pred: np.ndarray,
 ) -> Dict[str, float]:
     """Return MAE, RMSE and Directional Accuracy."""
-    y_true = np.asarray(y_true).ravel()
-    y_pred = np.asarray(y_pred).ravel()
-
-    mae = mean_absolute_error(y_true, y_pred)
-
-    # Compatible with all recent scikit-learn versions
-    # (the 'squared' argument was removed)
-    rmse = float(np.sqrt(mean_squared_error(y_true, y_pred)))
-
-    dir_acc = directional_accuracy(y_true, y_pred)
-
-    return {
-        "MAE": round(mae, 6),
-        "RMSE": round(rmse, 6),
-        "DirectionalAccuracy": round(dir_acc, 2),
-    }
+    return evaluate_forecast(y_true, y_pred)
 
 
 # ----------------------------------------------------------------------

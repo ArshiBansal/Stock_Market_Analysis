@@ -19,7 +19,7 @@ from data.features import add_technical_features, create_supervised_dataset, get
 from models.ml_models import get_ml_model, ML_MODEL_MAP
 from models.baselines import NaiveLastClose, NaiveLastReturn
 from models.train_eval import chronological_split, evaluate_regression
-from config import DISCLAIMER, ML_MODELS, BASELINE_MODELS, DL_MODELS
+from config import DISCLAIMER, ML_MODELS, BASELINE_MODELS
 
 
 def render_ai_forecast(filters: Dict[str, Any]) -> None:

@@ -11,7 +11,10 @@ DATA_DIR = ROOT_DIR / "data"
 ARTIFACTS_DIR = ROOT_DIR / "artifacts"
 NOTEBOOKS_DIR = ROOT_DIR / "notebooks"
 
-ARTIFACTS_DIR.mkdir(exist_ok=True)
+def ensure_directories() -> None:
+    """Create required project directories (idempotent)."""
+    ARTIFACTS_DIR.mkdir(exist_ok=True)
+
 
 # Project metadata
 PROJECT_NAME = "Zephyr"
