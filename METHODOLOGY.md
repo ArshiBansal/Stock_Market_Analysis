@@ -162,9 +162,9 @@ It is an exploratory comparison view, not a portfolio optimizer or risk-manageme
 
 `data.fetch` provides `fetch_fundamentals()` and `fetch_multi_fundamentals()`, which read company information through `yfinance.Ticker.info`. Returned fields include name, sector, industry, market cap, trailing and forward P/E, price-to-book, dividend yield, EPS, revenue, profit margin, beta, and 52-week high/low. Fundamentals are displayed in the Portfolio screen and are not features in the return-forecast models.
 
-## 08 · News and sentiment are a separate experiment
+## 08 · News and sentiment are not part of this dashboard
 
-The repository includes helpers to retrieve ticker headlines through `yfinance` and analyze headline text with VADER or FinBERT. These modules are **not connected to the current six-tab dashboard** and are not inputs to its displayed return forecasts. FinBERT may download pretrained files on first use and requires compatible `transformers` and PyTorch installations.
+The repository previously included helpers to retrieve ticker headlines and analyze headline text with VADER or FinBERT. Those modules are **not part of the current dashboard** and are not inputs to its displayed return forecasts.
 
 ## 09 · Reproduce an experiment
 

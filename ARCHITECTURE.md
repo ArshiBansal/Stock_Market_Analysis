@@ -55,13 +55,8 @@ flowchart TD
         Classical["Classical machine learning (incl. Prophet)"]
         Sequences["TensorFlow LSTM and GRU"]
     end
-    subgraph Supporting["Supporting modules"]
-        News["News retrieval helpers"]
-        Sentiment["VADER and FinBERT sentiment"]
-    end
     subgraph Services["External services"]
         Yahoo["Yahoo Finance through yfinance (quotes, history, fundamentals)"]
-        ModelHub["Hugging Face model hub"]
     end
 
     Browser -->|"views dashboard"| App
@@ -87,9 +82,6 @@ flowchart TD
     Training -->|"scores and predictions"| Tabs
     Tabs -->|"signals and prices"| Backtest
     Backtest -->|"equity curve and risk metrics"| Tabs
-    News -->|"requests ticker headlines"| Yahoo
-    News -->|"sends headlines for scoring"| Sentiment
-    Sentiment -.->|"loads pretrained weights when needed"| ModelHub
 ```
 
 <h3 align="center" id="technology-stack-summary">The tools in the room</h3>
@@ -101,7 +93,7 @@ flowchart TD
 | Visualization | Plotly | `>=5.18.0` | Interactive price, comparison, and training charts |
 | Data handling | pandas | `>=2.1.0` | OHLCV frames, feature tables, and data transformations |
 | Data handling | NumPy | `>=1.26.0` | Numeric operations and model input arrays |
-| Market data | yfinance | `>=0.2.36` | Yahoo Finance quotes, daily history, and supporting news retrieval |
+| Market data | yfinance | `>=0.2.36` | Yahoo Finance quotes, daily history, and fundamentals |
 | Feature analysis | ta | `>=0.11.0` | Technical-analysis dependency; feature code also computes rolling and lagged measures directly |
 | Classical machine learning | scikit-learn | `>=1.4.0` | Preprocessing, regressors, chronological evaluation, and metrics |
 | Classical machine learning | XGBoost | `>=2.0.0` | Optional gradient-boosted tree regressor |
@@ -113,7 +105,7 @@ Versions shown are minimum constraints from `requirements.txt`, not a lockfile o
 
 <h3 align="center" id="data-storage-amp-external-services">Where the data goes</h3>
 
-Yahoo Finance is accessed at runtime through `yfinance` for quotes, historical OHLCV observations, fundamental/company info, and supporting news retrieval. FinBERT can obtain pretrained model files from the Hugging Face model hub when sentiment analysis is invoked. **There is no database, message broker, or durable market-data store:** fetched data and model results are handled in application memory. Trained classical ML models can be persisted to `artifacts/models/` through `models.persistence`, but persistence is a convenience cache, not a model registry with lineage or governance.
+Yahoo Finance is accessed at runtime through `yfinance` for quotes, historical OHLCV observations, and fundamental/company info. **There is no database, message broker, or durable market-data store:** fetched data and model results are handled in application memory. Trained classical ML models can be persisted to `artifacts/models/` through `models.persistence`, but persistence is a convenience cache, not a model registry with lineage or governance.
 
 <h3 align="center" id="key-architectural-decisions">Why the system is arranged this way</h3>
 
@@ -158,8 +150,6 @@ flowchart LR
         cMetrics["utils.metrics"]
     end
     subgraph cSupport["Supporting modules"]
-        cNews["nlp.news_fetch"]
-        cSentiment["nlp.sentiment"]
         cConfig["config.py"]
     end
 
@@ -207,7 +197,6 @@ flowchart LR
     cTrainEval -->|"fits tabular estimators"| cML
     cTrainEval -->|"trains sequence estimators"| cDL
     cTrainEval -->|"computes evaluation scores"| cMetrics
-    cNews -->|"adds headline sentiment"| cSentiment
     cApp -.->|"loads project settings"| cConfig
     cFetch -.->|"uses ticker and history settings"| cConfig
     cML -.->|"uses random seed"| cConfig

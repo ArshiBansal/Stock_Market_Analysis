@@ -51,7 +51,7 @@ That change is principally one of **structure and scope**. This comparison does 
 
 | Area | Earlier references | Current repository |
 |---|---|---|
-| Application shape | A large `streamlit.py` file contained page setup, fetching, analysis, model code, charts, news, and subscription handling. | `app.py` composes six `ui/` views; data, features, models, configuration, NLP, and metrics have separate packages. |
+| Application shape | A large `streamlit.py` file contained page setup, fetching, analysis, model code, charts, news, and subscription handling. | `app.py` composes seven `ui/` views; data, features, models, configuration, and metrics have separate packages. |
 | Main market-data workflow | The dashboard loaded five years of daily history and also requested a one-minute live-price series with a 25-second cache. | Dashboard screens fetch daily history for a selected date range, defaulting to about two years; quotes and history are fetched through `yfinance`. |
 | Ticker selection | Three technology-focused groups covering 23 listed symbols. | A configured, curated set across the United States, United Kingdom, Europe, and Australia. |
 | Feature design | The notebook worked with a multi-ticker CSV and engineered grouped features such as moving averages, lagged closes, and direction labels. The app used close-price lags for selected models. | Reusable per-ticker features include returns and lags, moving averages, volatility, momentum, candle shape, and volume ratios; the target is a selected-horizon close-to-close return. |
@@ -87,7 +87,7 @@ The `NaiveLastClose` baseline represents a zero-return prediction, and `NaiveLas
 
 <h2 align="center" id="notebook-research-compared-with-the-current-app">Notebook research compared with the current app</h2>
 
-The supplied `project2.ipynb` was an 81-cell research notebook and expected a local `major-tech-stock-2019-2024.csv` file. Its work included:
+The supplied notebook was an 81-cell research notebook and expected a local CSV file. Its work included:
 
 - Multi-ticker cleaning and grouped feature engineering.
 - Cross-stock comparisons, return/volatility summaries, and ticker correlations.

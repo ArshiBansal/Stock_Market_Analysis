@@ -34,7 +34,7 @@
 <summary><strong>Quick navigation</strong>　(⌘ / Ctrl + click a section)</summary>
 
 - [Step into the market lab](#the-idea)
-- [Six stops along the investigation](#what-you-can-explore)
+- [Seven stops along the investigation](#what-you-can-explore)
 - [Follow the evidence](#market-data-to-model-score)
 - [Open the lab](#launch-zephyr)
 - [Find your way around the project](#project-map)
@@ -183,7 +183,7 @@ If PowerShell prevents environment activation, run the environment's Python dire
 python -m pip install -r requirements.txt
 ```
 
-The requirements include deep-learning and NLP libraries, so setup can be substantial. TensorFlow powers the LSTM/GRU screen.
+The requirements include deep-learning libraries, so setup can be substantial. TensorFlow powers the LSTM/GRU screen.
 
 ### 3 · Start the dashboard
 
