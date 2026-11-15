@@ -6,7 +6,6 @@ Zephyr – Unit tests for data layer
 import pytest
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
 
 from data.fetch import (
     validate_tickers,
