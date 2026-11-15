@@ -213,3 +213,30 @@ def get_cached_supervised_dataset(
             )
             st.session_state[key] = (X, y, df)
     return st.session_state.get(key)
+
+
+# ----------------------------------------------------------------------
+# Shared loader used by the UI tabs
+# ----------------------------------------------------------------------
+def load_featured_prices(
+    ticker: str,
+    start: Optional[str] = None,
+    end: Optional[str] = None,
+    period: str = "2y",
+) -> Optional[pd.DataFrame]:
+    """
+    Fetch, clean and feature-engineer a single ticker's OHLCV history.
+
+    Returns the feature-enhanced DataFrame (indexed by date) or ``None`` when
+    no data is available. This is the single shared path used by the
+    Models & Evaluation, Research, and Scenario Lab tabs.
+    """
+    from data.fetch import fetch_ohlcv
+    from data.preprocess import clean_ohlcv, handle_missing_values
+
+    raw = fetch_ohlcv(tickers=ticker, start=start, end=end, period=period)
+    if ticker not in raw or raw[ticker].empty:
+        return None
+    df = clean_ohlcv(raw[ticker])
+    df = handle_missing_values(df, method="ffill")
+    return add_technical_features(df, dropna=True)

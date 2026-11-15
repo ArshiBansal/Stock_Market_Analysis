@@ -230,20 +230,6 @@ def fetch_latest_quote(ticker: str) -> Dict:
         }
 
 
-def fetch_multi_latest_quotes(
-    tickers: List[str],
-    max_workers: int = 6,
-) -> Dict[str, Dict]:
-    """Fetch latest quotes for multiple tickers concurrently."""
-    results = {}
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = {executor.submit(fetch_latest_quote, t): t for t in tickers}
-        for future in as_completed(futures):
-            ticker = futures[future]
-            results[ticker] = future.result()
-    return results
-
-
 def fetch_fundamentals(ticker: str) -> Dict:
     """Fetch fundamental/company info for a single ticker via yfinance."""
     try:
@@ -271,17 +257,3 @@ def fetch_fundamentals(ticker: str) -> Dict:
     except Exception as e:
         logger.error(f"Fundamentals failed for {ticker}: {e}")
         return {"ticker": ticker, "error": str(e)}
-
-
-def fetch_multi_fundamentals(
-    tickers: List[str],
-    max_workers: int = 6,
-) -> Dict[str, Dict]:
-    """Fetch fundamentals for multiple tickers concurrently."""
-    results = {}
-    with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = {executor.submit(fetch_fundamentals, t): t for t in tickers}
-        for future in as_completed(futures):
-            ticker = futures[future]
-            results[ticker] = future.result()
-    return results
