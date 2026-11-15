@@ -26,6 +26,9 @@ requests>=2.31.0
 tqdm>=4.66.0
 joblib>=1.3.0
 
+# Model explainability (optional at runtime; falls back to permutation importance)
+shap>=0.44.0
+
 # Optional
 prophet>=1.1.5
 
