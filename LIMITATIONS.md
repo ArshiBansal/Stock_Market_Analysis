@@ -72,7 +72,7 @@ The common model screens use limited forward filling for missing OHLCV values. A
 
 The supervised models use engineered OHLCV-derived inputs and a direct cumulative close-to-close return target over the selected 1-, 3-, or 5-trading-day horizon. They do not currently incorporate company fundamentals, macroeconomic variables, order-book data, transaction costs, or news sentiment.
 
-The repository includes VADER and FinBERT news-analysis helpers, but the News & Sentiment tab was removed. **Those sentiment outputs are not features in the live dashboard forecasts.**
+The repository previously included VADER and FinBERT news-analysis helpers, but those modules and the News & Sentiment tab have been removed. **Forecasts are based purely on market data.**
 
 ### Baselines are return predictions
 
@@ -80,7 +80,23 @@ The repository includes VADER and FinBERT news-analysis helpers, but the News & 
 
 ### Model availability and compute
 
-XGBoost, LightGBM, and Prophet are treated as optional imports in the model factory; an unavailable library prevents that estimator from running. LSTM and GRU require a compatible TensorFlow installation and sufficient sequence data.
+XGBoost, LightGBM, and Prophet are treated as optional imports in the model factory; an unavailable library prevents that estimator from running. LSTM and GRU require a compatible TensorFlow installation and sufficient sequence data. SHAP-based explainability is optional (`pip install shap`); when unavailable, permutation importance is used instead.
+
+### Explainability is an approximation
+
+Permutation importance measures how much a feature's shuffle degrades holdout MAE. SHAP on a scaled `Pipeline([scaler, model])` is an approximation of the underlying estimator's attributions. Neither proves causality; a feature's importance reflects its correlation with the target under the training distribution, not a mechanism.
+
+### Prediction intervals are approximate
+
+The AI Forecast screen adds split-conformal prediction intervals calibrated on the chronological holdout. Coverage is finite-sample approximate and can degrade under distribution shift, regime change, or non-exchangeable data. A band on a chart is **not a calibrated confidence statement** about the future.
+
+### Backtest and signal caveats
+
+The Research hub exposes the backtest engine with transaction costs, slippage, position sizing, and an optional stop-loss. Model predictions are produced per forecast origin over the selected horizon, then traded as a consecutive daily signal series; this overlapping-horizon treatment is an approximation. The non-overlapping **stride** mode (stride = horizon) reduces that overlap. Backtesting is a historical simulation, not live paper trading, and not a profitability guarantee.
+
+### Scenario Lab is descriptive, not predictive
+
+Monte Carlo paths resample the historical return distribution (or a GBM fit); they model the past, not the future, and cannot anticipate regime change, news, or structural breaks. First-passage target/stop probabilities are derived from those simulated paths. Volatility regimes are descriptive rolling-volatility quantile labels, not a predictive model. Shock what-if recovery times are estimated from historical days with comparable drops and can be faster, slower, or never.
 
 ### Model persistence
 
@@ -113,7 +129,7 @@ The LSTM/GRU screen fits a standard scaler to training features and reserves a v
 | **Maximum drawdown** | Largest peak-to-trough decline in cumulative equity | The path of losses or recovery time |
 | **Value at Risk** | Historical percentile loss at the configured confidence level | Tail risk beyond the percentile or expected shortfall |
 
-Directional accuracy ignores zero actual returns. The dashboard does not calculate trading returns, confidence intervals, calibrated uncertainty, or prediction intervals. A chart or score is **not a confidence estimate**.
+Directional accuracy ignores zero actual returns. The dashboard does not calculate calibrated uncertainty beyond the approximate conformal band, or economic value after execution costs. A chart or score is **not a confidence estimate**.
 
 <h2 align="center" id="4--what-the-forecast-screen-does-not-forecast">04 · What the forecast screen does not forecast</h2>
 
@@ -131,7 +147,7 @@ It is not a target price, probability range, confidence interval, or guaranteed 
 
 ### Model selection in the forecast tab has a different scope
 
-The AI Forecast screen supports the listed baseline and classical ML branches. Selecting LSTM or GRU in the shared sidebar does not train a neural network in that screen; unsupported selections are routed to an XGBoost fallback. That fallback also depends on XGBoost being installed. Use the Neural Networks tab to run its separate LSTM/GRU experiment.
+The AI Forecast screen supports the listed baseline and classical ML branches, plus an approximate split-conformal interval. Selecting LSTM or GRU in the shared sidebar does not train a neural network in that screen; unsupported selections are routed to an XGBoost fallback. That fallback also depends on XGBoost being installed. Use the Models & Evaluation tab to run its separate LSTM/GRU experiment.
 
 <h2 align="center" id="5--context-missing-from-the-picture">05 · Context missing from the picture</h2>
 
@@ -140,7 +156,8 @@ The current analysis does not account for:
 - Real-time execution: brokerage fees, bid–ask spread, slippage, liquidity, taxes, and timing are only approximated in the backtest engine, not applied to live forecasts.
 - Portfolio weights, diversification, leverage, and risk controls beyond the Portfolio screen's equal-weight aggregation.
 - Fundamentals are displayed in the Portfolio screen but are **not features** in the return-forecast models.
-- Macro events, regime-change detection, stress scenarios, or guarantees that historical patterns persist.
+- Regime-change detection is descriptive only (volatility regimes); there is no predictive regime model.
+- Guarantees that historical patterns persist; Scenario Lab outputs are descriptive models of the past.
 - A production monitoring, alerting, authentication, or multi-user data-isolation design.
 
 The app is a local educational dashboard, not a hardened portfolio or financial-services platform. Treat deployment and access controls as separate engineering work before exposing it beyond a trusted local environment.
@@ -148,9 +165,9 @@ The app is a local educational dashboard, not a hardened portfolio or financial-
 <h2 align="center" id="6--practical-and-operational-boundaries">06 · Practical and operational boundaries</h2>
 
 - **Internet required:** quotes and history are fetched at runtime; there is no offline market-data snapshot bundled with the application.
-- **External model assets:** FinBERT can require a first-use model download and additional disk space.
-- **Performance varies:** training time and memory use depend on the machine, data span, and model, especially for neural networks.
-- **Results are transient:** the dashboard runs experiments in memory and does not provide a persistent experiment registry or reproducibility archive.
+- **Optional assets:** SHAP can require a first-use import/download; install with `pip install shap` (permutation importance works without it).
+- **Performance varies:** training time and memory use depend on the machine, data span, and model, especially for neural networks, SHAP, and hyperparameter tuning.
+- **Experiment registry is lightweight:** runs are appended to `artifacts/experiments/experiments.jsonl`; there is no rotation or database. Clear old records periodically.
 - **Reproducing a run takes notes:** capture the ticker, date range, observation timestamp, missing-data policy, model, parameters, test fraction, and package environment.
 
 <h2 align="center" id="a-careful-way-to-use-the-dashboard">A careful way to use the dashboard</h2>

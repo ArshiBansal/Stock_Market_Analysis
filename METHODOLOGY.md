@@ -30,10 +30,10 @@ Before creating model inputs, the data utilities:
 
 1. Standardize the time index, sort observations chronologically, and keep the last row for duplicate timestamps.
 2. Convert available OHLCV fields to numeric values and remove rows with non-positive OHLC prices.
-3. Apply a missing-data policy where the calling screen requests it. Most model screens use limited forward fill; the Raw Data screen exposes forward-fill, drop, and no-fill choices.
+3. Apply a missing-data policy where the calling screen requests it. Most model screens use limited forward fill; the Overview's Data & Features section exposes forward-fill, drop, and no-fill choices.
 4. Report basic data quality, including row count, date span, and missing-cell percentage.
 
-Cleaning choices affect the resulting sample. In particular, forward filling carries an earlier observation into a later missing value; it does not reconstruct the unobserved market event. Inspect the Raw Data view and quality summary before interpreting a model result.
+Cleaning choices affect the resulting sample. In particular, forward filling carries an earlier observation into a later missing value; it does not reconstruct the unobserved market event. Inspect the Overview's Data & Features view and quality summary before interpreting a model result.
 
 ## 03 · Turn history into features
 

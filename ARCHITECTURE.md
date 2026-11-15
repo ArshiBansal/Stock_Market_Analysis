@@ -42,13 +42,19 @@ flowchart TD
     subgraph Presentation["Presentation layer"]
         App["Streamlit application"]
         Sidebar["Shared sidebar filters"]
-        Tabs["Seven dashboard tabs"]
+        Tabs["Six dashboard tabs"]
     end
     subgraph Analysis["Analysis layer"]
         Fetch["Market data fetching"]
         Clean["Cleaning and quality checks"]
         Features["Technical feature engineering and session-state cache"]
         Training["Training and evaluation"]
+        Uncertainty["Split-conformal prediction intervals"]
+        Signals["Prediction to signal conversion"]
+        Explain["Permutation / SHAP explainability"]
+        Tuning["Randomized search over time-series folds"]
+        Registry["JSONL experiment registry"]
+        Scenario["Monte Carlo, first-passage, regimes, shock"]
         Backtest["Backtesting engine"]
         Persistence["Model persistence (joblib)"]
         Baselines["Baseline regressors"]
@@ -80,8 +86,16 @@ flowchart TD
     Classical -->|"predictions"| Training
     Sequences -->|"predictions"| Training
     Training -->|"scores and predictions"| Tabs
+    Training -->|"interval calibration"| Uncertainty
+    Training -->|"directional signals"| Signals
+    Training -->|"feature importance"| Explain
+    Training -->|"best hyperparameters"| Tuning
+    Tuning -->|"run records"| Registry
+    Backtest -->|"run records"| Registry
     Tabs -->|"signals and prices"| Backtest
+    Tabs -->|"historical returns"| Scenario
     Backtest -->|"equity curve and risk metrics"| Tabs
+    Scenario -->|"fan chart, probabilities, regimes"| Tabs
 ```
 
 <h3 align="center" id="technology-stack-summary">The tools in the room</h3>
@@ -130,18 +144,23 @@ flowchart LR
         cApp["app.py"]
         cSidebar["ui.sidebar"]
         cOverview["ui.overview"]
-        cRaw["ui.raw_data"]
-        cTime["ui.time_series_ml"]
-        cNeural["ui.neural_networks"]
-        cPerformance["ui.performance"]
+        cModels["ui.models_evaluation"]
         cForecast["ui.ai_forecast"]
         cPortfolio["ui.portfolio"]
+        cResearch["ui.research"]
+        cScenario["ui.scenario"]
     end
     subgraph cAnalysis["Analysis and models"]
         cFetch["data.fetch"]
         cPreprocess["data.preprocess"]
         cFeatures["data.features"]
         cTrainEval["models.train_eval"]
+        cUncertainty["models.uncertainty"]
+        cSignals["models.signals"]
+        cExplain["models.explainability"]
+        cTuning["models.tuning"]
+        cRegistry["models.registry"]
+        cScenario["models.scenario"]
         cBacktest["models.backtest"]
         cPersistence["models.persistence"]
         cBaselines["models.baselines"]
@@ -155,44 +174,37 @@ flowchart LR
 
     cApp -->|"renders shared controls"| cSidebar
     cApp -->|"renders dashboard views"| cOverview
-    cApp -->|"renders dashboard views"| cRaw
-    cApp -->|"renders dashboard views"| cTime
-    cApp -->|"renders dashboard views"| cNeural
-    cApp -->|"renders dashboard views"| cPerformance
+    cApp -->|"renders dashboard views"| cModels
     cApp -->|"renders dashboard views"| cForecast
     cApp -->|"renders dashboard views"| cPortfolio
+    cApp -->|"renders dashboard views"| cResearch
+    cApp -->|"renders dashboard views"| cScenario
     cSidebar -->|"passes ticker and date filters"| cOverview
-    cSidebar -->|"passes ticker and date filters"| cRaw
-    cSidebar -->|"passes ticker model and dates"| cTime
-    cSidebar -->|"passes ticker and dates"| cNeural
-    cSidebar -->|"passes ticker and dates"| cPerformance
+    cSidebar -->|"passes ticker model dates horizon"| cModels
     cSidebar -->|"passes forecast selections"| cForecast
     cSidebar -->|"passes ticker and region"| cPortfolio
-    cOverview -->|"fetches latest quote"| cFetch
-    cRaw -->|"loads history and cleans it"| cFetch
-    cRaw -->|"checks quality and missing values"| cPreprocess
-    cTime -->|"loads historical observations"| cFetch
-    cNeural -->|"loads historical observations"| cFetch
-    cPerformance -->|"loads historical observations"| cFetch
+    cSidebar -->|"passes ticker model dates horizon"| cResearch
+    cSidebar -->|"passes ticker and dates"| cScenario
+    cOverview -->|"fetches quote and history"| cFetch
+    cOverview -->|"checks quality and missing values"| cPreprocess
+    cModels -->|"loads observations"| cFetch
+    cModels -->|"cleans and features"| cPreprocess
+    cModels -->|"runs comparisons"| cTrainEval
+    cModels -->|"trains sequences"| cDL
+    cModels -->|"evaluates predictions"| cMetrics
     cForecast -->|"loads quote and history"| cFetch
-    cPortfolio -->|"loads history and fundamentals"| cFetch
-    cTime -->|"prepares supervised features"| cPreprocess
-    cNeural -->|"prepares supervised features"| cPreprocess
-    cPerformance -->|"prepares supervised features"| cPreprocess
     cForecast -->|"prepares supervised features"| cPreprocess
-    cPreprocess -->|"clean OHLCV frames"| cFeatures
-    cFeatures -->|"feature matrix and shifted target"| cTrainEval
-    cFeatures -->|"cached supervised dataset"| cTrainEval
-    cTime -->|"runs model comparisons"| cTrainEval
-    cPerformance -->|"runs comparison and validation"| cTrainEval
-    cNeural -->|"builds and trains sequences"| cDL
-    cNeural -->|"evaluates predictions"| cMetrics
-    cForecast -->|"creates selected ML model"| cML
-    cForecast -->|"creates selected baseline"| cBaselines
+    cForecast -->|"creates selected model"| cML
     cForecast -->|"persists and reuses model"| cPersistence
+    cForecast -->|"interval calibration"| cUncertainty
     cForecast -->|"scores holdout predictions"| cMetrics
     cPortfolio -->|"computes risk metrics"| cMetrics
-    cPortfolio -->|"runs backtest on signals"| cBacktest
+    cResearch -->|"feature importance"| cExplain
+    cResearch -->|"hyperparameter search"| cTuning
+    cResearch -->|"signals and prices"| cBacktest
+    cResearch -->|"run records"| cRegistry
+    cResearch -->|"loads registry"| cRegistry
+    cScenario -->|"simulates scenarios"| cScenario
     cTrainEval -->|"runs reference models"| cBaselines
     cTrainEval -->|"fits tabular estimators"| cML
     cTrainEval -->|"trains sequence estimators"| cDL
@@ -207,26 +219,31 @@ flowchart LR
 
 | Component | Layer | Type | Responsibility |
 |---|---|---|---|
-| `app.py` | Presentation | Streamlit entry point | Configures the page and renders the shared sidebar and seven dashboard views |
+| `app.py` | Presentation | Streamlit entry point | Configures the page and renders the shared sidebar and six dashboard views |
 | `ui.sidebar` | Presentation | Shared UI module | Collects region, ticker, date range, model, horizon, and refresh selections |
-| `ui.overview` | Presentation | Dashboard view | Displays the latest quote, daily movement, and observation freshness |
-| `ui.raw_data` | Presentation | Dashboard view | Displays OHLCV history, quality information, cleaning controls, and CSV download |
-| `ui.time_series_ml` | Presentation | Dashboard view | Charts history and starts classical ML and baseline comparisons |
-| `ui.neural_networks` | Presentation | Dashboard view | Prepares sequences, trains LSTM or GRU, and displays evaluation charts |
-| `ui.performance` | Presentation | Dashboard view | Compares model metrics and optionally runs walk-forward validation |
-| `ui.ai_forecast` | Presentation | Dashboard view | Generates a selected-horizon estimate and shows holdout performance; persists/reuses models |
+| `ui.overview` | Presentation | Dashboard view | Displays the latest quote, daily movement, and observation freshness; includes a Data & Features section (OHLCV, quality, cleaning, CSV) |
+| `ui.models_evaluation` | Presentation | Dashboard view | Candlestick, feature preview, classical ML comparison, neural-network training, and walk-forward evaluation via a segmented sub-nav |
+| `ui.ai_forecast` | Presentation | Dashboard view | Generates a selected-horizon estimate with split-conformal prediction intervals and shows holdout performance |
 | `ui.portfolio` | Presentation | Dashboard view | Multi-ticker correlation, normalized performance, risk summary, and fundamentals |
+| `ui.research` | Presentation | Dashboard view | Explainability, hyperparameter tuning, backtesting, and the experiment registry via a segmented sub-nav |
+| `ui.scenario` | Presentation | Dashboard view | Monte Carlo, first-passage probability, volatility regimes, and shock what-if via a segmented sub-nav |
 | `data.fetch` | Analysis | Data integration module | Retrieves quotes, daily OHLCV data, fundamentals, and records ticker fetch failures |
 | `data.preprocess` | Analysis | Data preparation module | Sorts and cleans price observations, handles missing values, and reports quality |
 | `data.features` | Analysis | Feature engineering module | Builds technical and lagged features, shifted supervised targets, and session-state cache |
 | `models.train_eval` | Analysis | Training and evaluation module | Performs chronological splits, model comparisons, metrics, and walk-forward validation |
+| `models.uncertainty` | Analysis | Uncertainty module | Split-conformal prediction intervals, empirical coverage, and interval helpers |
+| `models.signals` | Analysis | Signal module | Converts return predictions into directional trading signals (incl. non-overlapping stride mode) |
+| `models.explainability` | Analysis | Explainability module | Permutation importance (always) and optional SHAP, with global and local explanations |
+| `models.tuning` | Analysis | Tuning module | Randomized search over hyperparameters with time-series CV folds |
+| `models.registry` | Analysis | Registry module | Append-only JSONL experiment registry (log, load, clear, summarize) |
+| `models.scenario` | Analysis | Scenario module | Monte Carlo paths, first-passage probability, volatility regimes, and shock impact |
 | `models.backtest` | Analysis | Backtesting engine | Simulates signals with transaction costs, slippage, position sizing, and stop-loss |
 | `models.persistence` | Analysis | Model persistence | Saves and loads fitted models via joblib into `artifacts/models/` |
 | `models.baselines` | Analysis | Estimators | Provides last-close, last-return, and moving-average reference models |
 | `models.ml_models` | Analysis | Model factory | Builds scikit-learn, XGBoost, LightGBM, and Prophet regressors |
 | `models.dl_models` | Analysis | Deep-learning module | Builds and trains LSTM and GRU sequence models |
 | `utils.metrics` | Analysis | Metric helpers | Calculates MAE, RMSE, directional accuracy, Sharpe ratio, max drawdown, and VaR |
-| `config.py` | Supporting | Configuration module | Defines project metadata, ticker universe, refresh choices, feature windows, model options, and risk parameters |
+| `config.py` | Supporting | Configuration module | Defines project metadata, ticker universe, refresh choices, feature windows, model options, risk parameters, and the six-tab layout |
 
 <div align="center">
 
