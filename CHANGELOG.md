@@ -28,6 +28,19 @@
 
 > **Version note:** the project configuration (`config.py`) declares `VERSION = "1.0.0"`. "v3" here refers to the current feature set described in this changelog, not a published Git release tag. Bump `VERSION` and add a release tag when you ship a formal release.
 
+<h3 align="center" id="v4-release-notes">v4 — Tab restructure, credibility & rigor, and the Scenario Lab</h3>
+
+| Area | v3 | v4 (current) |
+|---|---|---|
+| Dashboard tabs | 7 tabs: Overview, Raw Data, Time Series + ML, Neural Networks, Performance Metrics, AI Forecast, Portfolio | **6 tabs:** Overview (absorbs Raw Data), **Models & Evaluation** (merges Time Series+ML, Neural Networks, Performance), AI Forecast, Portfolio, **Research**, **Scenario Lab** |
+| Uncertainty | Point forecast only | **Split-conformal prediction intervals** with a calibrated band on the AI Forecast chart and empirical coverage |
+| Backtest | Engine existed but was not exposed in any UI | **Backtest tab in Research** — model signals → equity curve, win rate, Sharpe, drawdown, VaR, with costs/slippage/stop-loss and a non-overlapping stride mode |
+| Explainability | None | **Feature importance** via permutation importance (always) or **SHAP** (optional), with global and latest-observation local contributions |
+| Tuning | Experiment defaults only | **Hyperparameter tuning** with `RandomizedSearchCV` over time-series CV folds |
+| Reproducibility | Transient in-memory results | **Experiment registry** — append-only JSONL at `artifacts/experiments/`, browsable and comparable in the Research hub |
+| Scenarios | None | **Scenario Lab** — Monte Carlo fan chart, first-passage target/stop probability, volatility-regime map, and interactive shock what-if |
+| Dependencies | — | Adds optional `shap` for explainability |
+
 <details>
 <summary><strong>Choose a chapter</strong></summary>
 
