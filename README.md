@@ -59,24 +59,27 @@ This is not a story where the model knows the ending. It is a place to ask bette
 | Question | Where to look |
 |---|---|
 | What does the latest available quote look like? | **Overview** |
-| What observations are being analyzed? | **Raw Data** |
-| What patterns can features and classic models capture? | **Time Series + ML** |
-| How do neural networks and model scores compare? | **Neural Networks** · **Performance Metrics** |
-| What does the selected model estimate over the selected horizon? | **AI Forecast** |
+| What observations are being analyzed? | **Overview → Data & Features** |
+| What patterns can features and classic models capture? | **Models & Evaluation → Classical ML** |
+| How do neural networks compare? | **Models & Evaluation → Neural Networks** |
+| Which model scores best? | **Models & Evaluation → Evaluation** |
+| What does the selected model estimate, and how uncertain is it? | **AI Forecast** (with prediction intervals) |
+| Why did the model predict that, and how should I trade it? | **Research → Explainability / Tuning / Backtest** |
+| What could happen next, and how likely is a target or stop? | **Scenario Lab** |
+| How do several tickers move together? | **Portfolio** |
 
-<h2 align="center" id="what-you-can-explore">◈ Seven stops along the investigation</h2>
+<h2 align="center" id="what-you-can-explore">◈ Six stops along the investigation</h2>
 
 The sidebar is your field notebook: choose a region, pick a ticker, set a date range, and select a model. From there, each tab reveals another part of the investigation.
 
 | Dashboard area | What it shows | Models / methods |
 |---|---|---|
-| **01 · Overview** | Latest available price, daily change, volume, day range, exchange, region, and data age | Yahoo Finance quote/history |
-| **02 · Raw Data** | Daily OHLCV history, missing-data summary, cleaning options, and a downloadable CSV | Forward-fill, drop, or leave missing values unchanged |
-| **03 · Time Series + ML** | Candlestick chart, feature preview, model comparison, and MAE chart | Naive baselines, Random Forest, Extra Trees, HistGradientBoosting, XGBoost, LightGBM, Prophet |
-| **04 · Neural Networks** | Train/test metrics, loss curves, and predicted-versus-actual returns | LSTM or GRU |
-| **05 · Performance Metrics** | Model ranking, MAE and directional-accuracy charts, optional walk-forward scores | Chronological holdout; optional expanding-window validation |
-| **06 · AI Forecast** | Holdout metrics, an illustrative horizon return and price, and test-set comparison | Selected baseline or classical ML model; persisted and reused via `artifacts/models/` |
-| **07 · Portfolio** | Multi-ticker correlation matrix, normalized equal-weight performance, risk summary, and fundamentals | Correlation, Sharpe ratio, max drawdown, VaR, yfinance fundamentals |
+| **01 · Overview** | Latest available price, daily change, volume, day range, exchange, region, and data age; plus an expandable **Data & Features** section (OHLCV, quality, cleaning, CSV) | Yahoo Finance quote/history |
+| **02 · Models & Evaluation** | Candlestick, feature preview, model comparison, neural-network training curves, and walk-forward evaluation — with a segmented sub-nav: **Classical ML · Neural Networks · Evaluation** | Naive baselines, Random Forest, Extra Trees, HistGradientBoosting, XGBoost, LightGBM, Prophet; LSTM or GRU |
+| **03 · AI Forecast** | Holdout metrics, a calibrated prediction interval, an illustrative horizon return and price, and test-set comparison | Selected baseline or classical ML model; persisted via `artifacts/models/` |
+| **04 · Portfolio** | Multi-ticker correlation matrix, normalized equal-weight performance, risk summary, and fundamentals | Correlation, Sharpe ratio, max drawdown, VaR, yfinance fundamentals |
+| **05 · Research** | **Explainability** (permutation / SHAP), **Hyperparameter Tuning**, **Backtest** (signals, costs, stop-loss), and an **Experiments** registry | Model-agnostic explainability; `RandomizedSearchCV`; backtest engine; JSONL registry |
+| **06 · Scenario Lab** | **Monte Carlo** fan chart, **Target / Stop** first-passage probability, **Volatility Regime** map, and interactive **Shock What-if** | Model-free simulations from historical returns |
 
 <p>
 <img alt="Price data" src="https://img.shields.io/badge/01%20%E2%80%94%20Data-173B5E?style=flat-square">
@@ -157,7 +160,7 @@ Before the experiment, the feature pipeline turns historical OHLCV observations 
 
 **① Prepare a workspace**　→　**② Bring in the tools**　→　**③ Open the dashboard**　→　**④ Choose a ticker**
 
-*Begin at Overview for the latest available quote; visit Raw Data next to inspect what the charts are built from.*
+*Begin at Overview for the latest available quote; open the **Data & Features** section there to inspect the OHLCV history and quality summary behind the charts.*
 
 </div>
 
@@ -208,7 +211,7 @@ Tests that fetch live quotes or ticker history depend on network access and Yaho
 
 ```text
 Stock_Market_Analysis/
-├── app.py                  # Streamlit entry point and seven dashboard tabs
+├── app.py                  # Streamlit entry point and six dashboard tabs
 ├── config.py               # Project settings, ticker universe, model choices
 ├── requirements.txt        # Python dependencies
 ├── ARCHITECTURE.md         # Application architecture and component relationships
@@ -229,18 +232,23 @@ Stock_Market_Analysis/
 │   ├── dl_models.py        # LSTM / GRU sequence models
 │   ├── train_eval.py       # Splitting, training, metrics, validation
 │   ├── backtest.py         # Backtesting engine (costs, slippage, stop-loss)
+│   ├── uncertainty.py      # Split-conformal prediction intervals
+│   ├── signals.py          # Prediction → directional signal conversion
+│   ├── explainability.py   # Permutation importance + optional SHAP
+│   ├── tuning.py           # RandomizedSearchCV over time-series folds
+│   ├── registry.py         # Append-only JSONL experiment registry
+│   ├── scenario.py         # Monte Carlo, first-passage, regimes, shock
 │   └── persistence.py      # Model save/load via joblib
-├── ui/                     # Sidebar and the seven Streamlit tab views
+├── ui/                     # Sidebar and the six Streamlit tab views
 │   ├── sidebar.py
-│   ├── overview.py
-│   ├── raw_data.py
-│   ├── time_series_ml.py
-│   ├── neural_networks.py
-│   ├── performance.py
-│   ├── ai_forecast.py
-│   └── portfolio.py        # Multi-ticker portfolio view
+│   ├── overview.py         # Quote snapshot + Data & Features
+│   ├── models_evaluation.py# Classical ML · Neural Networks · Evaluation
+│   ├── ai_forecast.py      # Forecast with prediction intervals
+│   ├── portfolio.py        # Multi-ticker portfolio view
+│   ├── research.py         # Explainability · Tuning · Backtest · Experiments
+│   └── scenario.py         # Monte Carlo · Target/Stop · Regime · Shock
 ├── utils/                  # Plotting, helper functions, and metrics (incl. risk metrics)
-├── tests/                  # Data, feature, and metric tests
+├── tests/                  # Data, feature, metric, uncertainty, signal, scenario tests
 └── notebooks/
     └── experiments.ipynb   # Experimental analysis notebook
 ```
@@ -303,9 +311,13 @@ Every investigation has boundaries. Keep these notes nearby as you read the char
 - **Validation:** comparison screens use an ordered train/test split; optional walk-forward validation is available for selected classical ML models. Neither guarantees future performance.
 - **Model choice:** XGBoost and LightGBM are listed in the requirements, but the ML module treats them as optional imports; availability depends on successful installation. Prophet is likewise optional.
 - **Forecast horizon:** choosing 3 or 5 days does not currently roll a one-step model forward for a corresponding multi-step forecast.
-- **News sentiment:** sentiment helpers exist in `nlp/`, but the News & Sentiment tab and its sidebar controls are currently removed from the dashboard.
+- **Prediction intervals:** AI Forecast adds split-conformal intervals calibrated on the holdout; coverage is approximate and can degrade under regime change.
+- **Explainability:** permutation importance is always available; SHAP is optional (`pip install shap`) and is an approximation on scaled pipelines.
+- **Backtesting:** the Research hub exposes the backtest engine with transaction costs, slippage, and an optional stop-loss; signals are produced per forecast origin and traded as a daily series (a non-overlapping stride mode reduces this approximation). It is a historical simulation, not live paper trading or a profitability guarantee.
+- **Scenario Lab:** Monte Carlo, first-passage, regime, and shock tools are descriptive models of the historical return distribution, not predictions of the future.
+- **News sentiment:** sentiment helpers referenced in older docs are no longer part of the app; forecasts are based purely on market data.
 - **Persistence:** trained classical ML models are saved to `artifacts/models/` and reused across sessions; persistence does not imply versioning, lineage, or production model governance.
-- **Backtesting:** the backtest engine applies transaction costs, slippage, and an optional stop-loss to historical signals, but it is a historical simulation, not live paper trading or a profitability guarantee.
+- **Experiment registry:** runs are logged to `artifacts/experiments/experiments.jsonl`; the registry is append-only with no rotation in v1.
 - **Portfolio:** the Portfolio view uses equal-weight aggregation and yfinance fundamentals; it is not a portfolio-optimization or risk-management system.
 - **No investment guidance:** forecasts may be inaccurate, stale, or misleading. Do your own research and consult a qualified professional where appropriate.
 
