@@ -1,6 +1,6 @@
 """
 Zephyr – Utility helpers
-Metrics, plotting and general helper functions.
+Metrics and plotting functions.
 """
 
 from .metrics import (
@@ -12,18 +12,7 @@ from .metrics import (
     max_drawdown,
     value_at_risk,
 )
-from .plotting import (
-    plot_candlestick,
-    plot_forecast_vs_actual,
-    plot_training_curves,
-)
-from .helpers import (
-    format_timestamp,
-    is_stale,
-    safe_divide,
-    ensure_datetime_index,
-    get_cache_ttl,
-)
+from .plotting import plot_candlestick
 
 __all__ = [
     # Metrics
@@ -36,12 +25,4 @@ __all__ = [
     "value_at_risk",
     # Plotting
     "plot_candlestick",
-    "plot_forecast_vs_actual",
-    "plot_training_curves",
-    # Helpers
-    "format_timestamp",
-    "is_stale",
-    "safe_divide",
-    "ensure_datetime_index",
-    "get_cache_ttl",
 ]
