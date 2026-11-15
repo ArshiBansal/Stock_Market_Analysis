@@ -8,8 +8,6 @@ from __future__ import annotations
 from typing import Optional, Tuple
 
 import numpy as np
-import pandas as pd
-from sklearn.preprocessing import StandardScaler
 
 from config import RANDOM_SEED
 

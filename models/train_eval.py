@@ -12,7 +12,6 @@ import pandas as pd
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.preprocessing import StandardScaler
 
-from config import RANDOM_SEED
 from .baselines import NaiveLastClose, NaiveLastReturn, MovingAverageBaseline
 from .ml_models import get_ml_model, ML_MODEL_MAP
 from .dl_models import (
@@ -22,7 +21,7 @@ from .dl_models import (
     train_dl_model,
     predict_dl,
 )
-from utils.metrics import directional_accuracy, evaluate_forecast
+from utils.metrics import directional_accuracy, evaluate_forecast  # directional_accuracy re-exported for API stability
 
 
 # ----------------------------------------------------------------------
