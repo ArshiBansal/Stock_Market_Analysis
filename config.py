@@ -10,12 +10,13 @@ ROOT_DIR = Path(__file__).parent
 DATA_DIR = ROOT_DIR / "data"
 ARTIFACTS_DIR = ROOT_DIR / "artifacts"
 MODEL_ARTIFACTS_DIR = ARTIFACTS_DIR / "models"
-NOTEBOOKS_DIR = ROOT_DIR / "notebooks"
+EXPERIMENTS_DIR = ARTIFACTS_DIR / "experiments"
 
 def ensure_directories() -> None:
     """Create required project directories (idempotent)."""
     ARTIFACTS_DIR.mkdir(exist_ok=True)
     MODEL_ARTIFACTS_DIR.mkdir(exist_ok=True)
+    EXPERIMENTS_DIR.mkdir(exist_ok=True)
 
 
 # Project metadata
@@ -80,14 +81,10 @@ CACHE_TTL_SECONDS = {
 }
 
 DEFAULT_HISTORY_PERIOD = "2y"
-INTRADAY_INTERVALS = ["1m", "5m"]
-MAX_INTRADAY_DAYS = 7
 
 # Forecasting
 DEFAULT_HORIZON = 1
 HORIZON_OPTIONS = [1, 3, 5]
-
-TARGET_TYPE = "close"
 
 # Risk metrics
 RISK_FREE_RATE = 0.02
@@ -123,23 +120,91 @@ MA_WINDOWS = [5, 10, 20, 50]
 VOLATILITY_WINDOW = 20
 MOMENTUM_WINDOW = 10
 
-# Evaluation metrics
-METRICS = ["MAE", "RMSE", "DirectionalAccuracy"]
-
-# UI / Streamlit
-PAGE_TITLE = PROJECT_TITLE
-PAGE_ICON = "📈"
-LAYOUT = "wide"
-
+# Restructured dashboard: 6 tabs
 TAB_NAMES = [
     "1. Overview",
-    "2. Raw Data",
-    "3. Time Series + ML",
-    "4. Neural Networks",
-    "5. Performance Metrics",
-    "6. AI Forecast",
-    "7. Portfolio",
+    "2. Models & Evaluation",
+    "3. AI Forecast",
+    "4. Portfolio",
+    "5. Research",
+    "6. Scenario Lab",
 ]
+
+# Sub-navigation within merged tabs
+MODEL_EVAL_SECTIONS = ["Classical ML", "Neural Networks", "Evaluation"]
+RESEARCH_SECTIONS = ["Explainability", "Hyperparameter Tuning", "Backtest", "Experiments"]
+SCENARIO_SECTIONS = ["Monte Carlo", "Target / Stop", "Volatility Regime", "Shock What-if"]
+
+# ----------------------------------------------------------------------
+# Credibility & rigor: prediction intervals
+# ----------------------------------------------------------------------
+FORECAST_INTERVAL_LEVELS = [0.5, 0.8, 0.9, 0.95]
+DEFAULT_INTERVAL_LEVEL = 0.8
+
+# ----------------------------------------------------------------------
+# Credibility & rigor: explainability
+# ----------------------------------------------------------------------
+EXPLAIN_METHODS = ["permutation", "shap"]
+SHAP_SAMPLE_SIZE = 100
+PERMUTATION_REPEATS = 10
+
+# ----------------------------------------------------------------------
+# Credibility & rigor: hyperparameter tuning
+# ----------------------------------------------------------------------
+TUNING_N_ITER = 20
+TUNING_CV_SPLITS = 5
+
+PARAM_GRIDS = {
+    "RandomForest": {
+        "model__n_estimators": [100, 200, 300],
+        "model__max_depth": [4, 6, 8, 10],
+        "model__min_samples_leaf": [2, 5, 10],
+    },
+    "ExtraTrees": {
+        "model__n_estimators": [100, 200, 300],
+        "model__max_depth": [4, 6, 8, 10],
+        "model__min_samples_leaf": [2, 5, 10],
+    },
+    "HistGradientBoosting": {
+        "model__max_iter": [100, 200, 300],
+        "model__max_depth": [4, 6, 8],
+        "model__learning_rate": [0.03, 0.05, 0.1],
+    },
+    "XGBoost": {
+        "model__n_estimators": [200, 300, 400],
+        "model__max_depth": [3, 4, 6],
+        "model__learning_rate": [0.03, 0.05, 0.1],
+        "model__subsample": [0.7, 0.8, 1.0],
+    },
+    "LightGBM": {
+        "model__n_estimators": [200, 300, 400],
+        "model__max_depth": [3, 4, 6],
+        "model__learning_rate": [0.03, 0.05, 0.1],
+        "model__subsample": [0.7, 0.8, 1.0],
+    },
+}
+
+# ----------------------------------------------------------------------
+# Credibility & rigor: backtesting
+# ----------------------------------------------------------------------
+BACKTEST_DEFAULTS = dict(
+    initial_capital=10_000.0,
+    position_size=1.0,
+    transaction_cost_bps=1.0,
+    slippage_bps=0.5,
+    stop_loss=None,
+)
+DEFAULT_SIGNAL_THRESHOLD = 0.0
+
+# ----------------------------------------------------------------------
+# Scenario Lab
+# ----------------------------------------------------------------------
+MC_PATHS = 2000
+MC_HORIZON = 21
+MC_METHODS = ["bootstrap", "gbm"]
+VOL_REGIME_WINDOW = 20
+VOL_REGIME_QUANTILES = (0.33, 0.67)
+SCENARIO_SAMPLE_PATHS = 12
 
 # Random seed
 RANDOM_SEED = 42
