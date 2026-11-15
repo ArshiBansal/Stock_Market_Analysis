@@ -12,9 +12,9 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
-from data.fetch import fetch_fundamentals, fetch_multi_latest_quotes, fetch_ohlcv
+from data.fetch import fetch_fundamentals, fetch_ohlcv
 from data.preprocess import clean_ohlcv, handle_missing_values
-from config import TICKERS, TICKER_TO_REGION
+from config import TICKERS
 
 
 def _fetch_portfolio_data(tickers: List[str]) -> Dict[str, pd.DataFrame]:

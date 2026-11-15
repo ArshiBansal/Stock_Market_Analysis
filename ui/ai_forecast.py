@@ -8,12 +8,9 @@ from __future__ import annotations
 from typing import Any, Dict
 
 import streamlit as st
-import pandas as pd
-import numpy as np
 import plotly.graph_objects as go
-from datetime import datetime
 
-from data.fetch import fetch_ohlcv, fetch_latest_quote, fetch_fundamentals
+from data.fetch import fetch_ohlcv, fetch_latest_quote
 from data.preprocess import clean_ohlcv, handle_missing_values
 from data.features import (
     add_technical_features,
@@ -25,7 +22,17 @@ from models.ml_models import get_ml_model, ML_MODEL_MAP
 from models.baselines import NaiveLastClose, NaiveLastReturn
 from models.train_eval import chronological_split, evaluate_regression
 from models.persistence import save_model, load_model, model_exists
-from config import DISCLAIMER, ML_MODELS, BASELINE_MODELS
+from models.uncertainty import (
+    conformal_half_width,
+    interval_coverage,
+    prediction_interval,
+)
+from config import (
+    DISCLAIMER,
+    BASELINE_MODELS,
+    FORECAST_INTERVAL_LEVELS,
+    DEFAULT_INTERVAL_LEVEL,
+)
 
 
 def render_ai_forecast(filters: Dict[str, Any]) -> None:
@@ -57,6 +64,14 @@ def render_ai_forecast(filters: Dict[str, Any]) -> None:
         "Last Observed Price",
         f"{last_price:,.2f}" if last_price else "N/A",
         help=str(last_ts) if last_ts else None,
+    )
+
+    interval_level = st.select_slider(
+        "Prediction interval level",
+        options=FORECAST_INTERVAL_LEVELS,
+        value=DEFAULT_INTERVAL_LEVEL,
+        format_func=lambda v: f"{int(v * 100)}%",
+        help="Split-conformal interval around the point forecast (calibrated on the test set)",
     )
 
     if stale:
@@ -139,6 +154,10 @@ def render_ai_forecast(filters: Dict[str, Any]) -> None:
 
                 metrics = evaluate_regression(y_test, test_preds)
 
+                # Split-conformal interval (calibrated on the holdout)
+                q_half = conformal_half_width(y_test, test_preds, alpha=1 - interval_level)
+                coverage = interval_coverage(y_test, test_preds, q_half)
+
             except Exception as e:
                 st.error(f"Forecast generation failed: {e}")
                 return
@@ -152,24 +171,48 @@ def render_ai_forecast(filters: Dict[str, Any]) -> None:
         m2.metric("RMSE", f"{metrics['RMSE']:.6f}")
         m3.metric("Directional Accuracy", f"{metrics['DirectionalAccuracy']:.1f}%")
 
+        # Interval calibration summary
+        st.subheader("Prediction Interval Calibration")
+        c1, c2 = st.columns(2)
+        c1.metric(
+            f"{int(interval_level * 100)}% Interval Half-Width",
+            f"{q_half*100:.3f}%",
+            help="Point forecast +/- this half-width forms the interval",
+        )
+        c2.metric(
+            "Empirical Coverage",
+            f"{coverage:.1f}%",
+            help="Share of holdout points that fall inside the interval",
+        )
+
         # Point forecast interpretation
         st.subheader(f"{horizon}-Trading-Day Forecast")
+        lo_ret, hi_ret = prediction_interval(point_forecast_return, q_half)
         if last_price:
+            lo_price = last_price * (1 + lo_ret)
+            hi_price = last_price * (1 + hi_ret)
             expected_price = last_price * (1 + point_forecast_return)
             st.metric(
                 "Expected Return",
                 f"{point_forecast_return*100:+.3f}%",
-                help=f"Predicted cumulative return over {horizon} trading day(s)",
+                help=f"{int(interval_level * 100)}% interval: "
+                f"[{lo_ret*100:+.3f}%, {hi_ret*100:+.3f}%]",
             )
             st.metric(
                 "Implied Price (approx)",
                 f"{expected_price:,.2f}",
-                help="Last price × (1 + predicted horizon return) – illustrative only",
+                help=f"{int(interval_level * 100)}% interval: "
+                f"[{lo_price:,.2f}, {hi_price:,.2f}] – illustrative only",
             )
         else:
-            st.metric("Predicted Return", f"{point_forecast_return*100:+.3f}%")
+            st.metric(
+                "Predicted Return",
+                f"{point_forecast_return*100:+.3f}%",
+                help=f"{int(interval_level * 100)}% interval: "
+                f"[{lo_ret*100:+.3f}%, {hi_ret*100:+.3f}%]",
+            )
 
-        # Forecast vs Actual chart (test period)
+        # Forecast vs Actual chart (test period) with interval band
         st.subheader("Forecast vs Actual (Test Period)")
         fig = go.Figure()
         fig.add_trace(go.Scatter(
@@ -178,6 +221,25 @@ def render_ai_forecast(filters: Dict[str, Any]) -> None:
             mode="lines",
             name="Actual Return",
             line=dict(color="black"),
+        ))
+        fig.add_trace(go.Scatter(
+            x=y_test.index,
+            y=test_preds + q_half,
+            mode="lines",
+            name=f"Upper ({int(interval_level*100)}%)",
+            line=dict(width=0),
+            showlegend=False,
+            hoverinfo="skip",
+        ))
+        fig.add_trace(go.Scatter(
+            x=y_test.index,
+            y=test_preds - q_half,
+            mode="lines",
+            name=f"Lower ({int(interval_level*100)}%)",
+            line=dict(width=0),
+            fill="tonexty",
+            fillcolor="rgba(255,165,0,0.18)",
+            hoverinfo="skip",
         ))
         fig.add_trace(go.Scatter(
             x=y_test.index,
@@ -202,6 +264,8 @@ def render_ai_forecast(filters: Dict[str, Any]) -> None:
             - Forecasts are for educational purposes only and are **not financial advice**.
             - Models use only information available at prediction time (no future leakage).
             - Short-horizon forecasts are noisy; directional accuracy is often close to chance.
+            - Prediction intervals use split-conformal calibration on the holdout; coverage is
+              approximate and can degrade under regime change or distribution shift.
             - Market regime changes, news events and liquidity can invalidate historical patterns.
             - Always combine quantitative signals with fundamental and risk analysis.
             """

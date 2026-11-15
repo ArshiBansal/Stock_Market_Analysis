@@ -1,6 +1,7 @@
 """
 Zephyr – Tab 1: Overview
-Market snapshot, latest quote, daily change, volume, high/low, region & data freshness.
+Live market snapshot plus the former "Raw Data" tooling (quality, cleaning,
+OHLCV table and CSV download) in a collapsible section.
 """
 
 from __future__ import annotations
@@ -10,7 +11,8 @@ from typing import Any, Dict
 import streamlit as st
 import pandas as pd
 
-from data.fetch import fetch_latest_quote, get_failed_tickers
+from data.fetch import fetch_latest_quote, fetch_ohlcv, get_failed_tickers
+from data.preprocess import clean_ohlcv, handle_missing_values, quality_report
 from config import DISCLAIMER
 
 
@@ -19,6 +21,9 @@ def render_overview(filters: Dict[str, Any]) -> None:
     st.caption("Live market snapshot for the selected ticker")
 
     ticker = filters.get("ticker")
+    start_date = filters.get("start_date")
+    end_date = filters.get("end_date")
+
     if not ticker:
         st.warning("Please select a ticker from the sidebar.")
         return
@@ -100,5 +105,85 @@ def render_overview(filters: Dict[str, Any]) -> None:
     }
     st.table(pd.DataFrame([details]).T.rename(columns={0: "Value"}))
 
+    # ------------------------------------------------------------------
+    # Data & Features (formerly the Raw Data tab)
+    # ------------------------------------------------------------------
+    with st.expander("Data & Features", expanded=False):
+        _render_data_and_features(ticker, start_date, end_date)
+
     st.markdown("---")
     st.caption(DISCLAIMER)
+
+
+def _render_data_and_features(ticker: str, start_date, end_date) -> None:
+    with st.spinner(f"Downloading OHLCV data for {ticker}..."):
+        raw = fetch_ohlcv(
+            tickers=ticker,
+            start=str(start_date) if start_date else None,
+            end=str(end_date) if end_date else None,
+            period="2y",
+            interval="1d",
+        )
+
+    if ticker not in raw or raw[ticker].empty:
+        st.error(f"No data returned for **{ticker}**.")
+        failed = get_failed_tickers()
+        if ticker in failed:
+            st.write(f"Reason: {failed[ticker]}")
+        return
+
+    df = raw[ticker].copy()
+
+    st.subheader("Data Quality")
+    report = quality_report(df, ticker=ticker)
+
+    q1, q2, q3, q4 = st.columns(4)
+    q1.metric("Rows", report["rows"])
+    q2.metric("Missing %", f"{report['missing_pct']}%")
+    q3.metric("Start", str(report["date_start"]))
+    q4.metric("End", str(report["date_end"]))
+
+    if report["status"] == "WARNING":
+        st.warning("Data quality warning – significant missing values detected.")
+    else:
+        st.success("Data quality looks good.")
+
+    st.subheader("Preprocessing")
+    fill_method = st.selectbox(
+        "Missing value handling",
+        options=["ffill", "drop", "none"],
+        index=0,
+        help="Forward-fill is recommended for price data",
+        key="rawdata_fill",
+    )
+
+    df_clean = clean_ohlcv(df)
+    df_clean = handle_missing_values(df_clean, method=fill_method)
+
+    st.write(f"Rows after cleaning: **{len(df_clean)}** (removed {len(df) - len(df_clean)})")
+
+    st.subheader("OHLCV Table")
+    st.dataframe(
+        df_clean.style.format({
+            "Open": "{:.2f}",
+            "High": "{:.2f}",
+            "Low": "{:.2f}",
+            "Close": "{:.2f}",
+            "Volume": "{:,.0f}",
+        }),
+        use_container_width=True,
+        height=420,
+    )
+
+    csv = df_clean.to_csv().encode("utf-8")
+    st.download_button(
+        label="Download cleaned CSV",
+        data=csv,
+        file_name=f"{ticker}_ohlcv.csv",
+        mime="text/csv",
+    )
+
+    failed = get_failed_tickers()
+    if failed:
+        with st.expander("Failed tickers this session"):
+            st.json(failed)
