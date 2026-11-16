@@ -101,7 +101,7 @@ def render_portfolio(filters: Dict[str, Any]) -> None:
     m1.metric("Sharpe", f"{sharpe_ratio(port_rets):.2f}")
     m2.metric("Max Drawdown", f"{max_drawdown(port_rets):.2f}%")
     m3.metric("VaR (95%)", f"{value_at_risk(port_rets):.2f}%")
-    m4.metric("Cumulative Return", f"{(closes.iloc[-1] / closes.iloc[0] - 1) * 100:.2f}%")
+    m4.metric("Cumulative Return", f"{((1 + port_rets).prod() - 1) * 100:.2f}%")
 
     # Fundamentals
     if show_fundamentals:
